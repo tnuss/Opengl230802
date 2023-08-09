@@ -3,10 +3,25 @@
 #include<GLFW/glfw3.h>
 //#include<stb/stb_image.h>
 
+#include "Shader.h"
+
+const int numVAOs = 1;
+const int numVBOs = 2;
+
+GLuint renderingProgram;
+GLuint vao[numVAOs];
+GLuint vbo[numVBOs];
+
+GLfloat vertices[] =
+{ //               COORDINATES                  /     COLORS           //
+    -0.25f, -0.25f, 0.0f,    // 0.8f, 0.3f,  0.02f, // Lower left
+     0.5f,  -0.25f, 0.0f,    // 0.8f, 0.3f,  0.02f, // Lower r
+     0.25f,  0.25f, 0.0f,    // 0.8f, 0.3f,  0.02f, // Lower r
+};
 
 int main()
 {
-    std::cout << "Hello World" << '\n';
+    std::cout << "Opengl Lines" << '\n';
 
     glfwInit();
     //
@@ -36,7 +51,26 @@ int main()
     //	// In this case the viewport goes from x = 0, y = 0, to x = 800, y = 800
     glViewport(0, 0, 800, 800);
 
-	glClearColor(0.07f, 0.13f, 0.17f, 1.0f);
+	glClearColor(0.17f, 0.15f, 0.27f, 1.0f);
+
+    Shader shader("resources/shader");
+    shader.Bind();
+
+    glGenVertexArrays(numVAOs, vao);
+    glGenBuffers(numVBOs, vbo);
+
+    glBindVertexArray(0);
+    glBindVertexArray(vao[0]);
+        
+        // LINES
+
+    glLineWidth(4);
+    glBindBuffer(GL_ARRAY_BUFFER, vbo[0]);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+ 
+    // if the vertex data changes this would go in display loop YES/NO??
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(float) * 3, 0);
+    glEnableVertexAttribArray(0);
 
 	// Main while loop
 	while (!glfwWindowShouldClose(window))
@@ -47,11 +81,33 @@ int main()
 		// Clean the back buffer and assign the new color to it
 		glClear(GL_COLOR_BUFFER_BIT);
 
+       // glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(float) * 3, 0);
+        //glEnableVertexAttribArray(0);
+                // !!!! ###  FOR SINGLE COLOR ON ALL VERTEXES
+        //glBindVertexArray(vao[0]);
+        glVertexAttrib4f(1, 0.5f, 1.0f, 0.2f, 1.0f);		// A greenish color (R, G, B, alpha values).
+
+        //glEnable(GL_DEPTH_TEST);
+        //glDepthFunc(GL_LEQUAL);
+
+        // this seems to have a big effect
+        //glFrontFace(GL_CW);
+        glFrontFace(GL_CCW);
+
+        glLineWidth(3.0f);
+        glDrawArrays(GL_LINE_STRIP, 0, 3);
+
+            // ******  if data changes uncomment this?????
+        //glDisableVertexAttribArray(0);
+
 		// Swap the back buffer with the front buffer
 		glfwSwapBuffers(window);
 		// Take care of all GLFW events
 		glfwPollEvents();
 	}
+
+        // clean up
+    glBindVertexArray(0);
 
 	glfwDestroyWindow(window);
 	// Terminate GLFW before ending the program

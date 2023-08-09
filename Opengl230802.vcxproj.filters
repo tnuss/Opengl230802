@@ -879,6 +879,9 @@
     <ClInclude Include="include\KHR\khrplatform.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="headers\Shader.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="include\glm\detail\func_common.inl">
@@ -1298,6 +1301,8 @@
     <None Include="include\glm\CMakeSettings.json" />
     <None Include="docs\OpenGl-BuildOptions-VStudio.docx" />
     <None Include="docs\OpenGL-VisStudioConfig.docx" />
+    <None Include="resources\shader.frag" />
+    <None Include="resources\shader.vert" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="include\glm\detail\glm.cpp">
@@ -1310,6 +1315,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\glad.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Shader.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
