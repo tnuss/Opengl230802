@@ -1,4 +1,5 @@
 #include<iostream>
+#include<string>
 #include<glad/glad.h>
 #include<GLFW/glfw3.h>
 //#include<stb/stb_image.h>
@@ -14,14 +15,41 @@ GLuint vbo[numVBOs];
 
 GLfloat vertices[] =
 { //               COORDINATES                  /     COLORS           //
-    -0.25f, -0.25f, 0.0f,    // 0.8f, 0.3f,  0.02f, // Lower left
-     0.5f,  -0.25f, 0.0f,    // 0.8f, 0.3f,  0.02f, // Lower r
-     0.25f,  0.25f, 0.0f,    // 0.8f, 0.3f,  0.02f, // Lower r
+    -0.25f, -0.25f, 0.0f,    // 0.8f, 0.3f,  0.02f, 1.0// Lower left
+     0.5f,  -0.25f, 0.0f,    // 0.8f, 0.3f,  0.02f, 1.0// Lower r
+     0.25f,  0.25f, 0.0f,    // 0.8f, 0.3f,  0.02f, 1.0// up r
 };
 
-int main()
+GLfloat vertices1[] =
+{ //               COORDINATES                  /     COLORS           //
+    -0.25f, -0.25f, 0.0f,    0.8f, 0.3f,  0.02f,// Lower left
+     0.5f,  -0.25f, 0.0f,    0.4f, 0.9f,  0.72f,// Lower r
+     0.25f,  0.25f, 0.0f,    0.8f, 0.9f,  0.52f// up r
+};
+
+int main(int argc, char* argv[])
 {
     std::cout << "Opengl Lines" << '\n';
+    std::cout << "CMD #Args: " << argc <<'\n';
+
+    int linesCMD = 0;
+
+    for (int i = 0; i < argc; i++)
+    {
+        std::cout << i << ": " << argv[i] << '\n';
+                
+            // blank or 0, uniform var for line color
+            // 1 texture for line color
+        if (i == 1)
+        {
+            std::string cmd(argv[i]);
+            if (cmd == "1")
+            {
+                std::cout << "Lines->1 Cmd " << '\n';
+                linesCMD = std::stoi(cmd);
+            }
+        }
+    }
 
     glfwInit();
     //
@@ -47,6 +75,9 @@ int main()
 
     //	//Load GLAD so it configures OpenGL
     gladLoadGL();
+
+    //std::cout << "Max Vertex Attributes: " << GL_MAX_VERTEX_ATTRIBS << '\n';
+
     //	// Specify the viewport of OpenGL in the Window
     //	// In this case the viewport goes from x = 0, y = 0, to x = 800, y = 800
     glViewport(0, 0, 800, 800);
@@ -58,19 +89,47 @@ int main()
 
     glGenVertexArrays(numVAOs, vao);
     glGenBuffers(numVBOs, vbo);
-
+    
     glBindVertexArray(0);
-    glBindVertexArray(vao[0]);
-        
-        // LINES
+    
+    // LINES
 
-    glLineWidth(4);
-    glBindBuffer(GL_ARRAY_BUFFER, vbo[0]);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
- 
-    // if the vertex data changes this would go in display loop YES/NO??
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(float) * 3, 0);
-    glEnableVertexAttribArray(0);
+
+
+    glBindVertexArray(vao[0]);
+
+       // ----------- 0
+    //glLineWidth(4);
+    if (linesCMD == 0)
+    {
+        glBindBuffer(GL_ARRAY_BUFFER, vbo[0]);
+        glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+
+        //// if the vertex data changes this would go in display loop YES/NO??
+        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(float) * 3, 0);
+        glEnableVertexAttribArray(0);
+
+            // location 1
+        glVertexAttrib4f(1, 0.5f, 1.0f, 0.2f, 1.0f);		// A greenish color (R, G, B, alpha values).
+    }
+
+
+    // ----------- 1
+
+    //// if the vertex data changes this would go in display loop YES/NO??
+    if (linesCMD == 1)
+    {
+        glBindBuffer(GL_ARRAY_BUFFER, vbo[1]);
+        glBufferData(GL_ARRAY_BUFFER, sizeof(vertices1), vertices1, GL_STATIC_DRAW);
+
+        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(float) * 6, 0);
+        glEnableVertexAttribArray(0);
+
+        //// if the vertex data changes this would go in display loop YES/NO??
+        glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, sizeof(float) * 6, (void*)(3 * sizeof(float)));
+        glEnableVertexAttribArray(1);
+
+    }
 
 	// Main while loop
 	while (!glfwWindowShouldClose(window))
@@ -85,8 +144,8 @@ int main()
         //glEnableVertexAttribArray(0);
                 // !!!! ###  FOR SINGLE COLOR ON ALL VERTEXES
         //glBindVertexArray(vao[0]);
-        glVertexAttrib4f(1, 0.5f, 1.0f, 0.2f, 1.0f);		// A greenish color (R, G, B, alpha values).
-
+                 // note: have to worry about GL_MAX_VERTEX_ATTRIBS !!!!
+        
         //glEnable(GL_DEPTH_TEST);
         //glDepthFunc(GL_LEQUAL);
 
@@ -94,7 +153,7 @@ int main()
         //glFrontFace(GL_CW);
         glFrontFace(GL_CCW);
 
-        glLineWidth(3.0f);
+        glLineWidth(6.0f);
         glDrawArrays(GL_LINE_STRIP, 0, 3);
 
             // ******  if data changes uncomment this?????
