@@ -4,6 +4,7 @@
 #include<GLFW/glfw3.h>
 //#include<stb/stb_image.h>
 
+#include "LineExamples.h"
 #include "Shader.h"
 
 const int numVAOs = 1;
@@ -13,33 +14,41 @@ GLuint renderingProgram;
 GLuint vao[numVAOs];
 GLuint vbo[numVBOs];
 
-GLfloat vertices[] =
-{ //               COORDINATES                  /     COLORS           //
-    -0.25f, -0.25f, 0.0f,    // 0.8f, 0.3f,  0.02f, 1.0// Lower left
-     0.5f,  -0.25f, 0.0f,    // 0.8f, 0.3f,  0.02f, 1.0// Lower r
-     0.25f,  0.25f, 0.0f,    // 0.8f, 0.3f,  0.02f, 1.0// up r
-};
+//--------- Funct Declarations
+
+GLFWwindow* InitGladAndWindow();
+
+//----------------------------
+
+//GLfloat vertices[] =
+//{ //               COORDINATES                  /     COLORS           //
+//    -0.25f, -0.25f, 0.0f,    // 0.8f, 0.3f,  0.02f, 1.0// Lower left
+//     0.5f,  -0.25f, 0.0f,    // 0.8f, 0.3f,  0.02f, 1.0// Lower r
+//     0.25f,  0.25f, 0.0f,    // 0.8f, 0.3f,  0.02f, 1.0// up r
+//};
 
 GLfloat vertices1[] =
 { //               COORDINATES                  /     COLORS           //
-    -0.25f, -0.25f, 0.0f,    0.8f, 0.3f,  0.02f,// Lower left
-     0.5f,  -0.25f, 0.0f,    0.4f, 0.9f,  0.72f,// Lower r
-     0.25f,  0.25f, 0.0f,    0.8f, 0.9f,  0.52f// up r
+    -0.25f, -0.25f, 0.0f,    0.8f, 0.3f,  0.02f, 1.0f, // Lower left
+     0.5f,  -0.25f, 0.0f,    0.4f, 0.9f,  0.72f, 1.0f, // Lower r
+     0.25f,  0.25f, 0.0f,    0.6f, 0.6f,  0.32f, 1.0f  // up r
 };
 
-int main(int argc, char* argv[])
+//----------------------------------------------
+
+int linesCMD = 0;  // default
+
+int DoCmdLine(int argc, char* argv[])
 {
     std::cout << "Opengl Lines" << '\n';
-    std::cout << "CMD #Args: " << argc <<'\n';
-
-    int linesCMD = 0;
+    std::cout << "CMD #Args: " << argc << '\n';
 
     for (int i = 0; i < argc; i++)
-    {
+    { 
         std::cout << i << ": " << argv[i] << '\n';
-                
-            // blank or 0, uniform var for line color
-            // 1 texture for line color
+
+        // blank or 0, uniform var for line color
+        // 1 texture for line color
         if (i == 1)
         {
             std::string cmd(argv[i]);
@@ -48,72 +57,49 @@ int main(int argc, char* argv[])
                 std::cout << "Lines->1 Cmd " << '\n';
                 linesCMD = std::stoi(cmd);
             }
+            else if (cmd == "2")
+            {
+                std::cout << "Lines->2 Cmd " << '\n';
+                linesCMD = std::stoi(cmd);
+            }
+
         }
     }
+    return 0;
+}
 
+//----------------------------------------------
+
+int main(int argc, char* argv[])
+{
+    DoCmdLine(argc, argv);
+    
     glfwInit();
-    //
-    //	// Tell GLFW what version of OpenGL we are using 
-    //	// In this case we are using OpenGL 3.3
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
-    // Tell GLFW we are using the CORE profile
-    // So that means we only have the modern functions
-    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
-    //	// Create a GLFWwindow object of 800 by 800 pixels, naming it "YoutubeOpenGL"
-	GLFWwindow* window = glfwCreateWindow(800, 800, "YoutubeOpenGL", NULL, NULL);
-
+    GLFWwindow* window = InitGladAndWindow();
     if (window == NULL)
-    {
-    	std::cout << "Failed to create GLFW window" << std::endl;
-    	glfwTerminate();
-    	return -1;
-    }
-
-    glfwMakeContextCurrent(window);
-
-    //	//Load GLAD so it configures OpenGL
-    gladLoadGL();
-
-    //std::cout << "Max Vertex Attributes: " << GL_MAX_VERTEX_ATTRIBS << '\n';
-
-    //	// Specify the viewport of OpenGL in the Window
-    //	// In this case the viewport goes from x = 0, y = 0, to x = 800, y = 800
-    glViewport(0, 0, 800, 800);
-
-	glClearColor(0.17f, 0.15f, 0.27f, 1.0f);
+        return -1;
 
     Shader shader("resources/shader");
     shader.Bind();
 
     glGenVertexArrays(numVAOs, vao);
     glGenBuffers(numVBOs, vbo);
-    
+        
+    // clear then activate vao
     glBindVertexArray(0);
-    
-    // LINES
-
-
-
     glBindVertexArray(vao[0]);
 
-       // ----------- 0
-    //glLineWidth(4);
+    LineExamples linesInst;
+
+        // line with color defined by single glVertexAttrib4f(layout loc, vec4 color)
     if (linesCMD == 0)
     {
-        glBindBuffer(GL_ARRAY_BUFFER, vbo[0]);
-        glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-
-        //// if the vertex data changes this would go in display loop YES/NO??
-        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(float) * 3, 0);
-        glEnableVertexAttribArray(0);
-
-            // location 1
-        glVertexAttrib4f(1, 0.5f, 1.0f, 0.2f, 1.0f);		// A greenish color (R, G, B, alpha values).
+            // set and activate(bind) the graphics buffers
+        linesInst.lines0(vbo[0]);
     }
 
-
+        // line with color defined by using color per vertex via vbo
     // ----------- 1
 
     //// if the vertex data changes this would go in display loop YES/NO??
@@ -122,13 +108,20 @@ int main(int argc, char* argv[])
         glBindBuffer(GL_ARRAY_BUFFER, vbo[1]);
         glBufferData(GL_ARRAY_BUFFER, sizeof(vertices1), vertices1, GL_STATIC_DRAW);
 
-        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(float) * 6, 0);
+        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(float) * 7, 0);
         glEnableVertexAttribArray(0);
 
         //// if the vertex data changes this would go in display loop YES/NO??
-        glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, sizeof(float) * 6, (void*)(3 * sizeof(float)));
+        glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, sizeof(float) * 7, (void*)(3 * sizeof(float)));
         glEnableVertexAttribArray(1);
 
+    }
+
+    // line with color defined by using color per vertex via vbo...outlines window to a degree
+    if (linesCMD == 2)
+    {
+        // set and activate(bind) the graphics buffers
+        linesInst.lines2(vbo[0]);
     }
 
 	// Main while loop
@@ -140,24 +133,25 @@ int main(int argc, char* argv[])
 		// Clean the back buffer and assign the new color to it
 		glClear(GL_COLOR_BUFFER_BIT);
 
-       // glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(float) * 3, 0);
-        //glEnableVertexAttribArray(0);
-                // !!!! ###  FOR SINGLE COLOR ON ALL VERTEXES
-        //glBindVertexArray(vao[0]);
-                 // note: have to worry about GL_MAX_VERTEX_ATTRIBS !!!!
+        // note: have to worry about GL_MAX_VERTEX_ATTRIBS !!!!
         
         //glEnable(GL_DEPTH_TEST);
         //glDepthFunc(GL_LEQUAL);
 
         // this seems to have a big effect
         //glFrontFace(GL_CW);
-        glFrontFace(GL_CCW);
+        //glFrontFace(GL_CCW);
 
-        glLineWidth(6.0f);
-        glDrawArrays(GL_LINE_STRIP, 0, 3);
+        glLineWidth(2.0f);
+
+        if (linesInst.DoLineStrip())
+            glDrawArrays(GL_LINE_STRIP, 0, linesInst.GetNumVertices());
+        else if (linesInst.DoLineLoop())
+            glDrawArrays(GL_LINE_LOOP, 0, linesInst.GetNumVertices());
 
             // ******  if data changes uncomment this?????
         //glDisableVertexAttribArray(0);
+        //glDisableVertexAttribArray(1);
 
 		// Swap the back buffer with the front buffer
 		glfwSwapBuffers(window);
@@ -178,6 +172,45 @@ int main(int argc, char* argv[])
 }
 
 //=====================================================
+
+GLFWwindow* InitGladAndWindow()
+{
+    //
+     //	// Tell GLFW what version of OpenGL we are using 
+     //	// In this case we are using OpenGL 3.3
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+    // Tell GLFW we are using the CORE profile
+    // So that means we only have the modern functions
+    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+
+    //	// Create a GLFWwindow object of 800 by 800 pixels, naming it "YoutubeOpenGL"
+    GLFWwindow* window = glfwCreateWindow(800, 800, "YoutubeOpenGL", NULL, NULL);
+
+    if (window == NULL)
+    {
+        std::cout << "Failed to create GLFW window" << std::endl;
+        glfwTerminate();
+        return NULL;
+    }
+
+    glfwMakeContextCurrent(window);
+
+    //	//Load GLAD so it configures OpenGL
+    gladLoadGL();
+
+    //std::cout << "Max Vertex Attributes: " << GL_MAX_VERTEX_ATTRIBS << '\n';
+
+    //	// Specify the viewport of OpenGL in the Window
+    //	// In this case the viewport goes from x = 0, y = 0, to x = 800, y = 800
+    glViewport(0, 0, 800, 800);
+
+    glClearColor(0.17f, 0.15f, 0.27f, 1.0f);
+
+    return window;
+}
+
+//=============================
 
 //// Vertices coordinates
 //GLfloat vertices[] =

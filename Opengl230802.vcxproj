@@ -585,6 +585,7 @@
   <ItemGroup>
     <ClCompile Include="include\glm\detail\glm.cpp" />
     <ClCompile Include="src\glad.c" />
+    <ClCompile Include="headers\LineExamples.h" />
     <ClCompile Include="src\main.cpp" />
     <ClCompile Include="src\Shader.cpp" />
     <ClCompile Include="src\stb.cpp" />

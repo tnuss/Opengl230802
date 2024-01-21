@@ -48,7 +48,6 @@ Shader::Shader(const std::string& fileName)
 
     glValidateProgram(m_program);
     CheckShaderError(m_program, GL_LINK_STATUS, true, "Invalid shader program");
-
                                          
     //unfrmTexUnitLoc = glGetUniformLocation(m_program, "sh_texunit");
     //if (unfrmTexUnitLoc == -1) {
