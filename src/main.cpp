@@ -2,13 +2,14 @@
 #include<string>
 #include<glad/glad.h>
 #include<GLFW/glfw3.h>
+
 //#include<stb/stb_image.h>
 
 #include "LineExamples.h"
 #include "Shader.h"
 
 const int numVAOs = 1;
-const int numVBOs = 2;
+const int numVBOs = 3;
 
 GLuint renderingProgram;
 GLuint vao[numVAOs];
@@ -16,27 +17,16 @@ GLuint vbo[numVBOs];
 
 //--------- Funct Declarations
 
+void framebuffer_size_callback(GLFWwindow* window, int width, int height);
+void processInput(GLFWwindow* window);
+
 GLFWwindow* InitGladAndWindow();
 
-//----------------------------
-
-//GLfloat vertices[] =
-//{ //               COORDINATES                  /     COLORS           //
-//    -0.25f, -0.25f, 0.0f,    // 0.8f, 0.3f,  0.02f, 1.0// Lower left
-//     0.5f,  -0.25f, 0.0f,    // 0.8f, 0.3f,  0.02f, 1.0// Lower r
-//     0.25f,  0.25f, 0.0f,    // 0.8f, 0.3f,  0.02f, 1.0// up r
-//};
-
-GLfloat vertices1[] =
-{ //               COORDINATES                  /     COLORS           //
-    -0.25f, -0.25f, 0.0f,    0.8f, 0.3f,  0.02f, 1.0f, // Lower left
-     0.5f,  -0.25f, 0.0f,    0.4f, 0.9f,  0.72f, 1.0f, // Lower r
-     0.25f,  0.25f, 0.0f,    0.6f, 0.6f,  0.32f, 1.0f  // up r
-};
-
 //----------------------------------------------
-
-int linesCMD = 0;  // default
+       // default argv
+int linesCMD = 0;
+    // line examples 'class'
+LineExamples linesInst;
 
 int DoCmdLine(int argc, char* argv[])
 {
@@ -62,14 +52,67 @@ int DoCmdLine(int argc, char* argv[])
                 std::cout << "Lines->2 Cmd " << '\n';
                 linesCMD = std::stoi(cmd);
             }
+            else if (cmd == "3")
+            {
+                std::cout << "Lines->3 Cmd " << '\n';
+                linesCMD = std::stoi(cmd);
+            }
+
 
         }
     }
     return 0;
 }
 
-//----------------------------------------------
+int DoLineExamples()
+{
+  
+    // line with color defined by single glVertexAttrib4f(layout loc, vec4 color)
+    if (linesCMD == 0)
+    {
+        // set and activate(bind) the graphics buffers
+        linesInst.lines0(vbo[0]);
 
+    }
+
+    // line with color defined by using color per vertex via vbo
+// ----------- 1
+//// if the vertex data changes this would go in display loop YES/NO??
+    if (linesCMD == 1)
+    {
+        linesInst.lines1(vbo[2]);
+        //glBindBuffer(GL_ARRAY_BUFFER, vbo[2]);
+        //glBufferData(GL_ARRAY_BUFFER, sizeof(vertices1), vertices1, GL_STATIC_DRAW);
+
+        //glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(float) * 7, 0);
+        //glEnableVertexAttribArray(0);
+
+        ////// if the vertex data changes this would go in display loop YES/NO??
+        //glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, sizeof(float) * 7, (void*)(3 * sizeof(float)));
+        //glEnableVertexAttribArray(1);
+
+    }
+
+    // line with color defined by using color per vertex via vbo...outlines window to a degree
+    if (linesCMD == 2)
+    {
+        // set and activate(bind) the graphics buffers
+        linesInst.lines2(vbo[0]);
+    }
+
+    if (linesCMD == 3)
+    {
+        // multiple lines via instancing
+        //int numInsts = 9;
+        // set and activate(bind) the graphics buffers, 
+        linesInst.SetNumInstances(9);
+        linesInst.lines3(vbo[0]);
+    }
+
+    return 0;
+}
+
+//----------------------------------------------
 int main(int argc, char* argv[])
 {
     DoCmdLine(argc, argv);
@@ -82,7 +125,7 @@ int main(int argc, char* argv[])
 
     Shader shader("resources/shader");
     shader.Bind();
-
+ 
     glGenVertexArrays(numVAOs, vao);
     glGenBuffers(numVBOs, vbo);
         
@@ -90,51 +133,21 @@ int main(int argc, char* argv[])
     glBindVertexArray(0);
     glBindVertexArray(vao[0]);
 
-    LineExamples linesInst;
+    DoLineExamples();
 
-        // line with color defined by single glVertexAttrib4f(layout loc, vec4 color)
-    if (linesCMD == 0)
-    {
-            // set and activate(bind) the graphics buffers
-        linesInst.lines0(vbo[0]);
-    }
-
-        // line with color defined by using color per vertex via vbo
-    // ----------- 1
-
-    //// if the vertex data changes this would go in display loop YES/NO??
-    if (linesCMD == 1)
-    {
-        glBindBuffer(GL_ARRAY_BUFFER, vbo[1]);
-        glBufferData(GL_ARRAY_BUFFER, sizeof(vertices1), vertices1, GL_STATIC_DRAW);
-
-        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(float) * 7, 0);
-        glEnableVertexAttribArray(0);
-
-        //// if the vertex data changes this would go in display loop YES/NO??
-        glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, sizeof(float) * 7, (void*)(3 * sizeof(float)));
-        glEnableVertexAttribArray(1);
-
-    }
-
-    // line with color defined by using color per vertex via vbo...outlines window to a degree
-    if (linesCMD == 2)
-    {
-        // set and activate(bind) the graphics buffers
-        linesInst.lines2(vbo[0]);
-    }
-
-	// Main while loop
+	    // Main while loop
 	while (!glfwWindowShouldClose(window))
 	{
+        processInput(window);
 		// Specify the color of the background
 		//  glClearColor(0.07f, 0.13f, 0.17f, 1.0f);
 
 		// Clean the back buffer and assign the new color to it
-		glClear(GL_COLOR_BUFFER_BIT);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         // note: have to worry about GL_MAX_VERTEX_ATTRIBS !!!!
         
+            // doesn't work with 2D Lines????
         //glEnable(GL_DEPTH_TEST);
         //glDepthFunc(GL_LEQUAL);
 
@@ -145,7 +158,9 @@ int main(int argc, char* argv[])
         glLineWidth(2.0f);
 
         if (linesInst.DoLineStrip())
-            glDrawArrays(GL_LINE_STRIP, 0, linesInst.GetNumVertices());
+            //glDrawArrays(GL_LINE_STRIP, 0, linesInst.GetNumVertices());
+            glDrawArraysInstanced(GL_LINE_STRIP, 0, linesInst.GetNumVertices(), 
+                                   linesInst.GetNumInstances());
         else if (linesInst.DoLineLoop())
             glDrawArrays(GL_LINE_LOOP, 0, linesInst.GetNumVertices());
 
@@ -168,10 +183,9 @@ int main(int argc, char* argv[])
 
     return 0;
 
-
 }
 
-//=====================================================
+//----------------------------------------------
 
 GLFWwindow* InitGladAndWindow()
 {
@@ -184,6 +198,9 @@ GLFWwindow* InitGladAndWindow()
     // So that means we only have the modern functions
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
+#ifdef __APPLE__
+    glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
+#endif
     //	// Create a GLFWwindow object of 800 by 800 pixels, naming it "YoutubeOpenGL"
     GLFWwindow* window = glfwCreateWindow(800, 800, "YoutubeOpenGL", NULL, NULL);
 
@@ -199,6 +216,10 @@ GLFWwindow* InitGladAndWindow()
     //	//Load GLAD so it configures OpenGL
     gladLoadGL();
 
+        // set default
+        // doesn't work with 2D Lines????
+    //glEnable(GL_DEPTH_TEST);
+
     //std::cout << "Max Vertex Attributes: " << GL_MAX_VERTEX_ATTRIBS << '\n';
 
     //	// Specify the viewport of OpenGL in the Window
@@ -210,7 +231,20 @@ GLFWwindow* InitGladAndWindow()
     return window;
 }
 
-//=============================
+//-----------------------------------------
+void processInput(GLFWwindow* window)
+{
+    if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
+        glfwSetWindowShouldClose(window, true);
+}
+
+//---------------------------------------------
+void framebuffer_size_callback(GLFWwindow* window, int width, int height)
+{
+    // make sure the viewport matches the new window dimensions; note that width and 
+    // height will be significantly larger than specified on retina displays.
+    glViewport(0, 0, width, height);
+}
 
 //// Vertices coordinates
 //GLfloat vertices[] =
