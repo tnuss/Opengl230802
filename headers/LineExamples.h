@@ -31,7 +31,7 @@ public:
         // hex line model, .25 length to vertex from 0,0; .5 length from vert.to opposite verte 
         // 
         glm::vec3 hexVerts[6];
-        float size = 0.25f;
+        float size = 1.0f;
         float b = 0;
 
         for (int i = 0; i < 6; i++)
@@ -55,25 +55,8 @@ public:
         glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(float) * 3, 0);
         glEnableVertexAttribArray(0);
 
-        //winX = 1280
-        //    winY = 720
-        //    xScaled = winY / winX
-        //    yScaled = 1
-
-        //    # first hex at 0, 0; .25 is length from 0 to a hex vertex or width from vert point to vert.point = .50
-        //    xv = [.25]
-        //    xv = xv * 6
-        //    for i in range(6) :
-        //        a = (math.pi / 180) * (120 - (i * 60))
-        //        xv[i] = xv[i] * math.cos(a) * xScaled
-        //        xv[i] = float(np.round(xv[i], 4))
-        //        pprint('xv: {}'.format(xv))
-
-
-                 // location 1 color
-        //glVertexAttrib4f(1, 0.5f, 1.0f, 0.2f, 1.0f);		// A greenish color (R, G, B, alpha values).
+                // single color
         glVertexAttrib4f(1, 0.86f, 0.9f, 0.32f, 1.0f);
-
 
     }
     //-----------------------------------------
