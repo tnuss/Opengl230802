@@ -24,7 +24,7 @@ GLFWwindow* InitGladAndWindow();
 
 //----------------------------------------------
        // default argv
-int linesCMD = 0;
+int linesCMD = 4;
     // line examples 'class'
 LineExamples linesInst;
 
@@ -57,8 +57,11 @@ int DoCmdLine(int argc, char* argv[])
                 std::cout << "Lines->3 Cmd " << '\n';
                 linesCMD = std::stoi(cmd);
             }
-
-
+            else if (cmd == "4")
+            {
+                std::cout << "Lines->4 Cmd " << '\n';
+                linesCMD = std::stoi(cmd);
+            }
         }
     }
     return 0;
@@ -107,6 +110,16 @@ int DoLineExamples()
         // set and activate(bind) the graphics buffers, 
         linesInst.SetNumInstances(9);
         linesInst.lines3(vbo[0]);
+    }
+
+    if (linesCMD == 4)
+    {
+        //Draw Hex Line
+        
+        linesInst.HexLine(vbo[0]);
+
+        //linesInst.SetNumInstances(9);
+        //linesInst.lines3(vbo[0]);
     }
 
     return 0;

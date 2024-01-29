@@ -4,6 +4,7 @@
 #include <vector>
 #include<glad/glad.h>
 #include <glm/glm.hpp> 
+#include <glm/gtc/constants.hpp> 
 #include <glm/gtc/random.hpp>
 
 //extern void Lines0(GLuint);
@@ -14,6 +15,7 @@ private:
     bool doLineStrip = false;
     bool doLineLoop = false;
     int numInsts = 1;
+    float halfpi = 0.0174532925;
 
 public:
     LineExamples() {};
@@ -23,6 +25,57 @@ public:
     inline void SetNumInstances(int insts) { numInsts = insts; };
     inline int GetNumInstances() { return numInsts; };
 
+    void HexLine(GLuint vbo)
+    {
+
+        // hex line model, .25 length to vertex from 0,0; .5 length from vert.to opposite verte 
+        // 
+        glm::vec3 hexVerts[6];
+        float size = 0.25f;
+        float b = 0;
+
+        for (int i = 0; i < 6; i++)
+        {
+            // 1 degree = pi/180 radians
+            b = halfpi * ((60 * i) - 30);
+                  // center is 0,0,0 in this case
+            hexVerts[i].x = size * glm::cos(b);
+            hexVerts[i].y = size * glm::sin(b);
+            hexVerts[i].z = 0.0f;
+        }
+        
+        numVertices = 6;
+        doLineStrip = false;
+        doLineLoop = true;
+
+        glBindBuffer(GL_ARRAY_BUFFER, vbo);
+        glBufferData(GL_ARRAY_BUFFER, sizeof(hexVerts), hexVerts, GL_STATIC_DRAW);
+
+        //// if the vertex data changes this would go in display loop YES/NO??
+        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(float) * 3, 0);
+        glEnableVertexAttribArray(0);
+
+        //winX = 1280
+        //    winY = 720
+        //    xScaled = winY / winX
+        //    yScaled = 1
+
+        //    # first hex at 0, 0; .25 is length from 0 to a hex vertex or width from vert point to vert.point = .50
+        //    xv = [.25]
+        //    xv = xv * 6
+        //    for i in range(6) :
+        //        a = (math.pi / 180) * (120 - (i * 60))
+        //        xv[i] = xv[i] * math.cos(a) * xScaled
+        //        xv[i] = float(np.round(xv[i], 4))
+        //        pprint('xv: {}'.format(xv))
+
+
+                 // location 1 color
+        //glVertexAttrib4f(1, 0.5f, 1.0f, 0.2f, 1.0f);		// A greenish color (R, G, B, alpha values).
+        glVertexAttrib4f(1, 0.86f, 0.9f, 0.32f, 1.0f);
+
+
+    }
     //-----------------------------------------
         // line with color defined by single glVertexAttrib4f(layout loc, vec4 color)
     void lines0(GLuint vbo)
