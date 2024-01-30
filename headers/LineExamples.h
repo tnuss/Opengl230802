@@ -6,6 +6,7 @@
 #include <glm/glm.hpp> 
 #include <glm/gtc/constants.hpp> 
 #include <glm/gtc/random.hpp>
+#include <glm/gtc/matrix_transform.hpp> 
 
 //extern void Lines0(GLuint);
 class LineExamples {
@@ -16,8 +17,12 @@ private:
     bool doLineLoop = false;
     int numInsts = 1;
     float halfpi = 0.0174532925;
+    int numHexVertices = 6;
 
 public:
+
+    glm::vec3 modelHexVerts[6];
+
     LineExamples() {};
     inline int GetNumVertices() { return numVertices; };
     inline bool DoLineStrip() { return doLineStrip; };
@@ -25,26 +30,44 @@ public:
     inline void SetNumInstances(int insts) { numInsts = insts; };
     inline int GetNumInstances() { return numInsts; };
 
-    void HexLine(GLuint vbo)
+    //----------------------------------------------------
+    void CreateHexModel()
     {
+        // hex line model, 1.0 length to vertex from 0,0; 2.0 length from vert.to opposite verte 
 
-        // hex line model, .25 length to vertex from 0,0; .5 length from vert.to opposite verte 
-        // 
-        glm::vec3 hexVerts[6];
         float size = 1.0f;
+        // flat top vs point top (30 degrees)
+        float deg = 0;
+        //float deg = 30;
         float b = 0;
 
-        for (int i = 0; i < 6; i++)
+        for (int i = 0; i < numHexVertices; i++)
         {
             // 1 degree = pi/180 radians
-            b = halfpi * ((60 * i) - 30);
-                  // center is 0,0,0 in this case
-            hexVerts[i].x = size * glm::cos(b);
-            hexVerts[i].y = size * glm::sin(b);
-            hexVerts[i].z = 0.0f;
+            b = halfpi * ((60 * i) - deg);
+            // center is 0,0,0 in this case
+            modelHexVerts[i].x = size * glm::cos(b);
+            modelHexVerts[i].y = size * glm::sin(b);
+            modelHexVerts[i].z = 0.0f;
+        }
+    }
+
+    //----------------------------------------------------
+    void HexLine(GLuint vbo)
+    {
+        CreateHexModel();
+
+        // !!!!!!!!  size of hex is dependent on window(viewport?) resolution 
+        float sizeScale = 0.1f; 
+
+        glm::vec3 hexVerts[6];
+        for (int i=0; i < numHexVertices; i++)
+        {
+            hexVerts[i] = glm::vec3(modelHexVerts[i]);
+            hexVerts[i] *= sizeScale;
         }
         
-        numVertices = 6;
+        numVertices = numHexVertices;
         doLineStrip = false;
         doLineLoop = true;
 
