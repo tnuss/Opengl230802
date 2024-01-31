@@ -12,12 +12,13 @@
 class LineExamples {
 
 private:
+    static const int numHexVertices = 6;
+
     int numVertices = 0;
     bool doLineStrip = false;
     bool doLineLoop = false;
     int numInsts = 1;
-    float halfpi = 0.0174532925;
-    int numHexVertices = 6;
+    float leHalfpi = 0.0174532925;
 
 public:
 
@@ -44,7 +45,7 @@ public:
         for (int i = 0; i < numHexVertices; i++)
         {
             // 1 degree = pi/180 radians
-            b = halfpi * ((60 * i) - deg);
+            b = leHalfpi * ((60 * i) - deg);
             // center is 0,0,0 in this case
             modelHexVerts[i].x = size * glm::cos(b);
             modelHexVerts[i].y = size * glm::sin(b);
@@ -60,7 +61,7 @@ public:
         // !!!!!!!!  size of hex is dependent on window(viewport?) resolution 
         float sizeScale = 0.1f; 
 
-        glm::vec3 hexVerts[6];
+        glm::vec3 hexVerts[numHexVertices];
         for (int i=0; i < numHexVertices; i++)
         {
             hexVerts[i] = glm::vec3(modelHexVerts[i]);
