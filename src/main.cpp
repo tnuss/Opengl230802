@@ -181,6 +181,7 @@ int main(int argc, char* argv[])
             if (linesCMD == 4)
             {
                 glDrawArrays(GL_LINE_LOOP, 6, linesInst.GetNumVertices());
+                glDrawArrays(GL_LINE_LOOP, 12, linesInst.GetNumVertices());
             }
         }
         

@@ -35,7 +35,8 @@ public:
     //----------------------------------------------------
     void CreateHexModel()
     {
-        // hex line model, 1.0 length to vertex from 0,0; 2.0 length from vert.to opposite verte 
+        // hex line model, 1.0 length to vertex from 0,0
+        //   2.0 length from vert.to opposite vertex
 
         float size = 1.0f;
         // flat top vs point top (30 degrees)
@@ -60,14 +61,15 @@ public:
         CreateHexModel();
 
         // !!!!!!!!  size of hex is dependent on window(viewport?) resolution 
-             // 1) SCALE Hex model
-        float sizeScale = 0.1f; 
+           // 1) SCALE Hex model 
+            // model: point vertex to origin is 1 , point to point is 2
+        float hexScaleSize = 0.1f; 
 
-        glm::vec3 hexVerts[numHexVertices + 6];
+        glm::vec3 hexVerts[numHexVertices + 12];
         for (int i=0; i < numHexVertices; i++)
         {
             hexVerts[i] = glm::vec3(modelHexVerts[i]);
-            hexVerts[i] *= sizeScale;
+            hexVerts[i] *= hexScaleSize;
         }
 
             // 2) TRANSLATE the scaled Hex model
@@ -86,8 +88,8 @@ public:
         float startX = -1.0f;
         float startY = 1.0f;
         glm::vec3 transIt = { 0.0f,0.0f,1.0f };
-        transIt.x= startX + sizeScale;
-        transIt.y = startY - ((glm::sqrt(3.0f) / 2.0f) * sizeScale);
+        transIt.x= startX + hexScaleSize;
+        transIt.y = startY - ((glm::sqrt(3.0f) / 2.0f) * hexScaleSize);
 
                 // VEC3 and LOOP translation -- 2nd version of translation 
                 // for 2D seems more straight forward than using glm::translate/mat4
@@ -99,14 +101,25 @@ public:
             hexVerts[i].z += transIt.z;
         }
 
-            // second hex
-        transIt.x = sizeScale * 3.0f / 2.0f;
-        transIt.y = ((glm::sqrt(3.0f) / 2.0f) * sizeScale);
+            // second hex move first set of vertices down and over
+        transIt.x = hexScaleSize * 3.0f / 2.0f;
+        transIt.y = ((glm::sqrt(3.0f) / 2.0f) * hexScaleSize);
 
         for (int i = numHexVertices; i < numHexVertices + 6; i++)
         {
-            hexVerts[i].x = transIt.x + hexVerts[i-6].x;
+            hexVerts[i].x = hexVerts[i - 6].x + transIt.x;
             hexVerts[i].y = hexVerts[i - 6].y - transIt.y;
+            hexVerts[i].z = transIt.z;
+        }
+
+        // move hex move 2nd set of vertices up and over
+        transIt.x = hexScaleSize * 3.0f / 2.0f;
+        transIt.y = ((glm::sqrt(3.0f) / 2.0f) * hexScaleSize);
+
+        for (int i = numHexVertices + 6; i < numHexVertices + 12; i++)
+        {
+            hexVerts[i].x = hexVerts[i - 6].x + transIt.x;
+            hexVerts[i].y = hexVerts[i - 6].y + transIt.y;
             hexVerts[i].z = transIt.z;
         }
 
