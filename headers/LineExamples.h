@@ -7,6 +7,7 @@
 #include <glm/gtc/constants.hpp> 
 #include <glm/gtc/random.hpp>
 #include <glm/gtc/matrix_transform.hpp> 
+#include <glm/gtc/type_ptr.hpp>
 
 //extern void Lines0(GLuint);
 class LineExamples {
@@ -59,15 +60,56 @@ public:
         CreateHexModel();
 
         // !!!!!!!!  size of hex is dependent on window(viewport?) resolution 
+             // 1) SCALE Hex model
         float sizeScale = 0.1f; 
 
-        glm::vec3 hexVerts[numHexVertices];
+        glm::vec3 hexVerts[numHexVertices + 6];
         for (int i=0; i < numHexVertices; i++)
         {
             hexVerts[i] = glm::vec3(modelHexVerts[i]);
             hexVerts[i] *= sizeScale;
         }
-        
+
+            // 2) TRANSLATE the scaled Hex model
+        //struct trans {
+        //    float tX;
+        //    float tY;
+        //    float tZ = 1;
+        //} transIt;
+
+
+        //transM4 = glm::translate(transM4, glm::vec3( 1,1,1 ));
+
+         // calc center offset from upper left of NDC model
+        // set beginning offset for screen
+        // set up for vec3 version of translation
+        float startX = -1.0f;
+        float startY = 1.0f;
+        glm::vec3 transIt = { 0.0f,0.0f,1.0f };
+        transIt.x= startX + sizeScale;
+        transIt.y = startY - ((glm::sqrt(3.0f) / 2.0f) * sizeScale);
+
+                // VEC3 and LOOP translation -- 2nd version of translation 
+                // for 2D seems more straight forward than using glm::translate/mat4
+                // ...maybe could have precision trouble vs using straight glm constructs
+        for (int i = 0; i < numHexVertices; i++)
+        {
+            hexVerts[i].x += transIt.x;
+            hexVerts[i].y += transIt.y;
+            hexVerts[i].z += transIt.z;
+        }
+
+            // second hex
+        transIt.x = sizeScale * 3.0f / 2.0f;
+        transIt.y = ((glm::sqrt(3.0f) / 2.0f) * sizeScale);
+
+        for (int i = numHexVertices; i < numHexVertices + 6; i++)
+        {
+            hexVerts[i].x = transIt.x + hexVerts[i-6].x;
+            hexVerts[i].y = hexVerts[i - 6].y - transIt.y;
+            hexVerts[i].z = transIt.z;
+        }
+
         numVertices = numHexVertices;
         doLineStrip = false;
         doLineLoop = true;
