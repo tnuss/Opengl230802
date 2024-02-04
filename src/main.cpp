@@ -168,14 +168,22 @@ int main(int argc, char* argv[])
         //glFrontFace(GL_CW);
         //glFrontFace(GL_CCW);
 
-        glLineWidth(2.0f);
+        glLineWidth(1.0f);
 
         if (linesInst.DoLineStrip())
             //glDrawArrays(GL_LINE_STRIP, 0, linesInst.GetNumVertices());
             glDrawArraysInstanced(GL_LINE_STRIP, 0, linesInst.GetNumVertices(), 
                                    linesInst.GetNumInstances());
         else if (linesInst.DoLineLoop())
+        {
+            //glDrawArrays(GL_LINE_LOOP, 0, linesInst.GetNumVertices());
             glDrawArrays(GL_LINE_LOOP, 0, linesInst.GetNumVertices());
+            if (linesCMD == 4)
+            {
+                glDrawArrays(GL_LINE_LOOP, 6, linesInst.GetNumVertices());
+            }
+        }
+        
 
             // ******  if data changes uncomment this?????
         //glDisableVertexAttribArray(0);
