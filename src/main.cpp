@@ -24,7 +24,7 @@ GLFWwindow* InitGladAndWindow();
 
 //----------------------------------------------
        // default argv
-int linesCMD = 4;
+int linesCMD = 5;
     // line examples 'class'
 LineExamples linesInst;
 
@@ -118,6 +118,16 @@ int DoLineExamples()
         
         linesInst.HexLine(vbo[0]);
 
+    }
+
+    if (linesCMD == 5)
+    {
+        //Draw Hexes by instances
+
+        linesInst.SetNumInstances(9);
+
+        linesInst.InstHexLine(vbo[0]);
+
         //linesInst.SetNumInstances(9);
         //linesInst.lines3(vbo[0]);
     }
@@ -129,16 +139,24 @@ int DoLineExamples()
 int main(int argc, char* argv[])
 {
     DoCmdLine(argc, argv);
-    
+
     glfwInit();
 
     GLFWwindow* window = InitGladAndWindow();
     if (window == NULL)
         return -1;
 
-    Shader shader("resources/shader");
-    shader.Bind();
- 
+    if (linesCMD == 5) 
+    {
+        Shader shader("resources/hexes", "resources/shader");
+        shader.Bind();
+    }   
+    else
+    {
+        Shader shader("resources/shader");
+        shader.Bind();
+    }
+
     glGenVertexArrays(numVAOs, vao);
     glGenBuffers(numVBOs, vbo);
         
@@ -170,18 +188,32 @@ int main(int argc, char* argv[])
 
         glLineWidth(1.0f);
 
-        if (linesInst.DoLineStrip())
-            //glDrawArrays(GL_LINE_STRIP, 0, linesInst.GetNumVertices());
-            glDrawArraysInstanced(GL_LINE_STRIP, 0, linesInst.GetNumVertices(), 
-                                   linesInst.GetNumInstances());
+        if (linesInst.DoLineStrip()) {
+
+            if (linesCMD == 3)
+            {
+                //glDrawArrays(GL_LINE_STRIP, 0, linesInst.GetNumVertices());
+                glDrawArraysInstanced(GL_LINE_STRIP, 0, linesInst.GetNumVertices(),
+                    linesInst.GetNumInstances());
+            }
+        }
         else if (linesInst.DoLineLoop())
         {
-            //glDrawArrays(GL_LINE_LOOP, 0, linesInst.GetNumVertices());
-            glDrawArrays(GL_LINE_LOOP, 0, linesInst.GetNumVertices());
-            if (linesCMD == 4)
+            if (linesCMD == 5)
             {
-                glDrawArrays(GL_LINE_LOOP, 6, linesInst.GetNumVertices());
-                glDrawArrays(GL_LINE_LOOP, 12, linesInst.GetNumVertices());
+                //glDrawArrays(GL_LINE_LOOP, 0, linesInst.GetNumVertices());
+                glDrawArraysInstanced(GL_LINE_STRIP, 0, linesInst.GetNumVertices(),
+                   linesInst.GetNumInstances());
+            }
+            else
+            {
+                //glDrawArrays(GL_LINE_LOOP, 0, linesInst.GetNumVertices());
+                glDrawArrays(GL_LINE_LOOP, 0, linesInst.GetNumVertices());
+                if (linesCMD == 4)
+                {
+                    glDrawArrays(GL_LINE_LOOP, 6, linesInst.GetNumVertices());
+                    glDrawArrays(GL_LINE_LOOP, 12, linesInst.GetNumVertices());
+                }
             }
         }
         

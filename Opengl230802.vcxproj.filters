@@ -1303,6 +1303,7 @@
     <None Include="docs\OpenGL-VisStudioConfig.docx" />
     <None Include="resources\shader.frag" />
     <None Include="resources\shader.vert" />
+    <None Include="resources\hexes.vert" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="include\glm\detail\glm.cpp">

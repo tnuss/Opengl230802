@@ -22,6 +22,7 @@ void main(void)
     //fs_color = vec4(position,1.0) * 0.5 + vec4(0.5,0.5,0.5,0.5);
     //fs_color = vec4(aColor, 1.0);
     fs_color = aColor;
+
 }
 
 

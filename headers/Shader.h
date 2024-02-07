@@ -8,7 +8,9 @@ class Shader
 {
 public:
 	Shader(const std::string& fileName);
+	Shader(const std::string& fileName, const std::string& fileName2);
 
+	void AttachValidate();
 	void Bind();
 	//void Update(const Transform& transform, const Camera& camera);
 

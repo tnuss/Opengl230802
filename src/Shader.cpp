@@ -3,6 +3,15 @@
 #include <iostream>
 #include <fstream>
 
+Shader::Shader(const std::string& fileName, const std::string& fileName2)
+{
+    m_program = glCreateProgram();
+    m_shaders[0] = CreateShader(LoadShader(fileName + ".vert"), GL_VERTEX_SHADER);
+    m_shaders[1] = CreateShader(LoadShader(fileName2 + ".frag"), GL_FRAGMENT_SHADER);
+
+    AttachValidate();
+}
+
 Shader::Shader(const std::string& fileName)
 {
     m_program = glCreateProgram();
@@ -90,6 +99,18 @@ Shader::~Shader()
     }
 
     glDeleteProgram(m_program);
+}
+
+void Shader::AttachValidate()
+{
+    for (unsigned int i = 0; i < NUM_SHADERS; i++)
+        glAttachShader(m_program, m_shaders[i]);
+
+    glLinkProgram(m_program);
+    CheckShaderError(m_program, GL_LINK_STATUS, true, "Error linking shader program");
+
+    glValidateProgram(m_program);
+    CheckShaderError(m_program, GL_LINK_STATUS, true, "Invalid shader program");
 }
 
 void Shader::Bind()

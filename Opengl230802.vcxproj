@@ -579,6 +579,7 @@
     <None Include="include\glm\gtx\wrap.inl" />
     <None Include="include\glm\out\build\x64-Debug\CMakeFiles\3.20.21032501-MSVC_2\CMakeDetermineCompilerABI_C.bin" />
     <None Include="include\glm\out\build\x64-Debug\CMakeFiles\3.20.21032501-MSVC_2\CMakeDetermineCompilerABI_CXX.bin" />
+    <None Include="resources\hexes.vert" />
     <None Include="resources\shader.frag" />
     <None Include="resources\shader.vert" />
   </ItemGroup>

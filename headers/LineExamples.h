@@ -20,6 +20,7 @@ private:
     bool doLineLoop = false;
     int numInsts = 1;
     float leHalfpi = 0.0174532925;
+    bool bIsFlatTop = true;
 
 public:
 
@@ -31,12 +32,14 @@ public:
     inline bool DoLineLoop() { return doLineLoop; };
     inline void SetNumInstances(int insts) { numInsts = insts; };
     inline int GetNumInstances() { return numInsts; };
+    inline bool IsFlatTop() { return bIsFlatTop; };
 
     //----------------------------------------------------
     void CreateHexModel()
     {
         // hex line model, 1.0 length to vertex from 0,0
         //   2.0 length from vert.to opposite vertex
+        // flat top
 
         float size = 1.0f;
         // flat top vs point top (30 degrees)
@@ -55,6 +58,102 @@ public:
         }
     }
 
+    //----------------------------------------------------
+    void InstHexLine(GLuint vbo)
+    {
+        CreateHexModel();
+
+        // !!!!!!!!  scaled size of hex should be dependent on window(viewport?) resolution 
+           // 1) SCALE Hex model 
+            // model has: point vertex to origin is 1 , point vertex to point vertex is 2
+            // this will be the set of points that will worked on by eash instance
+        float hexScaleSize = 0.14f;
+
+        glm::vec3 hexVerts[numHexVertices];
+        for (int i = 0; i < numHexVertices; i++)
+        {
+            hexVerts[i] = glm::vec3(modelHexVerts[i]);
+            hexVerts[i] *= hexScaleSize;
+        }
+
+            // translations will be the offsets that will applied to the scaled model hex 
+            // for each instance
+        std::vector<glm::vec3> translations;
+        translations.reserve(numInsts);
+        float offset = 0.0f;
+        glm::vec3 translation = { 0.0f,0.0f,0.0f};
+        
+        // calc ORIGIN/CENTER of hex offset from upper left of NDC model
+        // it should be first entry in translations
+
+        bool doUp = IsFlatTop();
+        float startX = -1.0f;
+        float startY = 1.0f;
+        glm::vec2 transIt = { 0.0f,0.0f };
+        transIt.x = startX + hexScaleSize;
+        transIt.y = startY - ((glm::sqrt(3.0f) / 2.0f) * hexScaleSize);
+
+        translation.x = transIt.x;
+        translation.y = transIt.y;
+        translations.push_back(translation);
+            
+        // next hex will be down half a hex
+        doUp = false;
+
+            // will use previous transIt TO CALC CENTERS OF REST OF HEXES TO BE DRAWN
+            //  THIS IS WHAT SHOUOLD GO IN SHADER
+
+        for (int i = 1; i < numInsts; i++)
+        {
+           /* offset = >> 1)calculate where from 0, 0 to current hex placement is or
+            2) move to starting positionand then do offsets from there
+            */
+            if (doUp)
+            {
+                // move last set of vertices up and over
+                transIt.x = transIt.x + hexScaleSize * 3.0f / 2.0f;
+                transIt.y = transIt.y + ((glm::sqrt(3.0f) / 2.0f) * hexScaleSize);
+                doUp = false;
+            }
+            else
+            {       // move last set of vertices down and over
+                transIt.x = transIt.x + hexScaleSize * 3.0f / 2.0f;
+                transIt.y = transIt.y - ((glm::sqrt(3.0f) / 2.0f) * hexScaleSize);
+                doUp = true;
+            }
+
+            translation.x = transIt.x;
+            translation.y = transIt.y;
+            translations.push_back(translation);
+
+        }
+
+        numVertices = numHexVertices;
+        doLineStrip = false;
+        doLineLoop = true;
+
+        glBindBuffer(GL_ARRAY_BUFFER, vbo);
+        glBufferData(GL_ARRAY_BUFFER, sizeof(hexVerts), hexVerts, GL_STATIC_DRAW);
+        //// if the vertex data changes this would go in display loop YES/NO??
+        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(float) * 3, 0);
+        glEnableVertexAttribArray(0);
+
+        // single color #1 layout var
+        glVertexAttrib4f(1, 0.86f, 0.9f, 0.32f, 1.0f);
+
+
+        //glBindBuffer(GL_ARRAY_BUFFER, vbo);
+        glBufferData(GL_ARRAY_BUFFER, sizeof(glm::vec3) * numInsts, &translations[0], GL_STATIC_DRAW);
+        //glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+        //glBindBuffer(GL_ARRAY_BUFFER, vbo[2]); // this attribute comes from a different vertex buffer
+        glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+
+        //glBindBuffer(GL_ARRAY_BUFFER, 0);
+        glVertexAttribDivisor(2, 1); // tell OpenGL this is an instanced vertex attribute.
+        glEnableVertexAttribArray(2);
+
+    }
     //----------------------------------------------------
     void HexLine(GLuint vbo)
     {
@@ -82,7 +181,7 @@ public:
 
         //transM4 = glm::translate(transM4, glm::vec3( 1,1,1 ));
 
-         // calc center offset from upper left of NDC model
+         // calc origin/center of hex offset from upper left of NDC model
         // set beginning offset for screen
         // set up for vec3 version of translation
         float startX = -1.0f;
@@ -134,7 +233,7 @@ public:
         glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(float) * 3, 0);
         glEnableVertexAttribArray(0);
 
-                // single color
+                        // single color #1 layout var
         glVertexAttrib4f(1, 0.86f, 0.9f, 0.32f, 1.0f);
 
     }
