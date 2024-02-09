@@ -126,7 +126,7 @@ int DoLineExamples()
 
         linesInst.SetNumInstances(9);
 
-        linesInst.InstHexLine(vbo[0]);
+        linesInst.InstHexLine(vbo[0], vbo[1]);
 
         //linesInst.SetNumInstances(9);
         //linesInst.lines3(vbo[0]);
@@ -202,8 +202,10 @@ int main(int argc, char* argv[])
             if (linesCMD == 5)
             {
                 //glDrawArrays(GL_LINE_LOOP, 0, linesInst.GetNumVertices());
-                glDrawArraysInstanced(GL_LINE_STRIP, 0, linesInst.GetNumVertices(),
-                   linesInst.GetNumInstances());
+                //glDrawArraysInstanced(GL_LINE_LOOP, 0, linesInst.GetNumVertices(),
+                  // linesInst.GetNumInstances());
+                glDrawArraysInstanced(GL_LINE_LOOP, 0, linesInst.GetNumVertices(),9);
+
             }
             else
             {

@@ -59,7 +59,7 @@ public:
     }
 
     //----------------------------------------------------
-    void InstHexLine(GLuint vbo)
+    void InstHexLine(GLuint vboVertices, GLuint vboInstance)
     {
         CreateHexModel();
 
@@ -82,6 +82,9 @@ public:
         translations.reserve(numInsts);
         float offset = 0.0f;
         glm::vec3 translation = { 0.0f,0.0f,0.0f};
+
+        //std::cout << "test: " << sizeof(test) << '\n';
+        //std::cout << "translation: " << sizeof(translation) << '\n';
         
         // calc ORIGIN/CENTER of hex offset from upper left of NDC model
         // it should be first entry in translations
@@ -128,25 +131,59 @@ public:
 
         }
 
+        //for (int i = 0; i < numInsts; i++)
+        //{
+        //    std::cout << "Translationsx: " << translations[i].x << '\n';
+        //    std::cout << "Translationsy: " << translations[i].y << '\n';
+        //    std::cout << "Translationsz: " << translations[i].z << '\n';
+
+        //}
+
+        //float test[3] = { 0.0,0.0,0.0 };
+        ////glm::vec3 test1[9];
+        //std::vector <glm::vec3> test1[9] ;
+        //std::cout << "test: " << sizeof(test) << '\n';
+        //std::cout << "test1: " << sizeof(test1) << '\n';
+        //std::cout << "translation: " << sizeof(translation) << '\n';
+        //std::cout << "translations: " << sizeof(translations.data()) << '\n';
+        //std::cout << "translations9: " << (sizeof(translations) * 9) << '\n';
+
+        //glm::vec3* a ;
+        //a = translations.data();
+
+        //std::cout << "translations.data: " << a[0].x << '\n';
+        //std::cout << "translations.data: " << a[0].y << '\n';
+        //std::cout << "translations.data: " << a[0].z << '\n';
+        ////a++;
+        //std::cout << "translations.data: " << a[1].x << '\n';
+        //std::cout << "translations.data: " << a[1].y << '\n';
+        //std::cout << "translations.data: " << a[1].z << '\n';
+
+        //for (int i = 0; i < 6; i++)
+        //{
+        //    std::cout << "hexVerts: " << hexVerts[i].x << '\n';
+        //    std::cout << "hexVerts: " << hexVerts[i].y << '\n';
+        //}
+
         numVertices = numHexVertices;
         doLineStrip = false;
         doLineLoop = true;
 
-        glBindBuffer(GL_ARRAY_BUFFER, vbo);
+        glBindBuffer(GL_ARRAY_BUFFER, vboVertices);
         glBufferData(GL_ARRAY_BUFFER, sizeof(hexVerts), hexVerts, GL_STATIC_DRAW);
         //// if the vertex data changes this would go in display loop YES/NO??
-        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(float) * 3, 0);
+        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(float) * 3, (void*)0);
         glEnableVertexAttribArray(0);
 
         // single color #1 layout var
         glVertexAttrib4f(1, 0.86f, 0.9f, 0.32f, 1.0f);
 
-
-        //glBindBuffer(GL_ARRAY_BUFFER, vbo);
+        glBindBuffer(GL_ARRAY_BUFFER, vboInstance);
         glBufferData(GL_ARRAY_BUFFER, sizeof(glm::vec3) * numInsts, &translations[0], GL_STATIC_DRAW);
+        //glBufferData(GL_ARRAY_BUFFER, sizeof(translations), &translations[0], GL_STATIC_DRAW);
         //glBindBuffer(GL_ARRAY_BUFFER, 0);
 
-        //glBindBuffer(GL_ARRAY_BUFFER, vbo[2]); // this attribute comes from a different vertex buffer
+        //(GL_ARRAY_BUFFER, ++vbo); // this attribute comes from a different vertex buffer
         glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
 
         //glBindBuffer(GL_ARRAY_BUFFER, 0);
