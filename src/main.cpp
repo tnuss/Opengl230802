@@ -16,7 +16,7 @@ GLuint vbo[numVBOs];
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void processInput(GLFWwindow* window);
 
-GLFWwindow* InitGladAndWindow();
+GLFWwindow* InitGladAndWindow(int width, int height);
 
 //-----------------------------------------------
 int DoCmdLine(int argc, char* argv[])
@@ -66,7 +66,7 @@ int main(int argc, char* argv[])
    
     glfwInit();
 
-    GLFWwindow* window = InitGladAndWindow();
+    GLFWwindow* window = InitGladAndWindow(800, 800);
     if (window == NULL)
         return -1;
    
@@ -103,10 +103,10 @@ int main(int argc, char* argv[])
 }
 
 //--------------------------------------------------
-GLFWwindow* InitGladAndWindow()
+GLFWwindow* InitGladAndWindow(int windx = 800, int windy = 800)
 {
-    int windx = 800;
-    int windy = 800;
+    //windx = 800;
+    //windy = 800;
     //
      //	// Tell GLFW what version of OpenGL we are using 
      //	// In this case we are using OpenGL 3.3
