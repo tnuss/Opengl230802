@@ -1,42 +1,84 @@
 #include<iostream>
+#include<string>
 #include<glad/glad.h>
 #include<GLFW/glfw3.h>
 //#include<stb/stb_image.h>
 
+int linesCMD = 0;
 
-int main()
+const int numVAOs = 1;
+const int numVBOs = 3;
+GLuint vao[numVAOs];
+GLuint vbo[numVBOs];
+
+//--------- Funct Declarations
+
+void framebuffer_size_callback(GLFWwindow* window, int width, int height);
+void processInput(GLFWwindow* window);
+
+GLFWwindow* InitGladAndWindow();
+
+//-----------------------------------------------
+int DoCmdLine(int argc, char* argv[])
 {
-    std::cout << "Hello World" << '\n';
+    std::cout << "Opengl Lines" << '\n';
+    std::cout << "CMD #Args: " << argc << '\n';
 
-    glfwInit();
-    //
-    //	// Tell GLFW what version of OpenGL we are using 
-    //	// In this case we are using OpenGL 3.3
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
-    // Tell GLFW we are using the CORE profile
-    // So that means we only have the modern functions
-    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-
-    //	// Create a GLFWwindow object of 800 by 800 pixels, naming it "YoutubeOpenGL"
-	GLFWwindow* window = glfwCreateWindow(800, 800, "YoutubeOpenGL", NULL, NULL);
-
-    if (window == NULL)
+    for (int i = 0; i < argc; i++)
     {
-    	std::cout << "Failed to create GLFW window" << std::endl;
-    	glfwTerminate();
-    	return -1;
+        std::cout << i << ": " << argv[i] << '\n';
+
+        // blank or 0, uniform var for line color
+        // 1 texture for line color
+        if (i == 1)
+        {
+            std::string cmd(argv[i]);
+            if (cmd == "1")
+            {
+                std::cout << "Lines->1 Cmd " << '\n';
+                linesCMD = std::stoi(cmd);
+            }
+            else if (cmd == "2")
+            {
+                std::cout << "Lines->2 Cmd " << '\n';
+                linesCMD = std::stoi(cmd);
+            }
+            else if (cmd == "3")
+            {
+                std::cout << "Lines->3 Cmd " << '\n';
+                linesCMD = std::stoi(cmd);
+            }
+            else if (cmd == "4")
+            {
+                std::cout << "Lines->4 Cmd " << '\n';
+                linesCMD = std::stoi(cmd);
+            }
+        }
     }
+    return 0;
+}
 
-    glfwMakeContextCurrent(window);
+//===================================================
 
-    //	//Load GLAD so it configures OpenGL
-    gladLoadGL();
-    //	// Specify the viewport of OpenGL in the Window
-    //	// In this case the viewport goes from x = 0, y = 0, to x = 800, y = 800
-    glViewport(0, 0, 800, 800);
+int main(int argc, char* argv[])
+{
+    DoCmdLine(argc, argv);
+   
+    glfwInit();
 
-	glClearColor(0.07f, 0.13f, 0.17f, 1.0f);
+    GLFWwindow* window = InitGladAndWindow();
+    if (window == NULL)
+        return -1;
+   
+    //Shader shader("resources/shader");
+    //shader.Bind();
+
+    glGenVertexArrays(numVAOs, vao);
+    glGenBuffers(numVBOs, vbo);
+
+    // clear then activate vao
+    glBindVertexArray(0);
+    glBindVertexArray(vao[0]);
 
 	// Main while loop
 	while (!glfwWindowShouldClose(window))
@@ -58,9 +100,70 @@ int main()
 	glfwTerminate();
 
     return 0;
-
-
 }
+
+//--------------------------------------------------
+GLFWwindow* InitGladAndWindow()
+{
+    int windx = 800;
+    int windy = 800;
+    //
+     //	// Tell GLFW what version of OpenGL we are using 
+     //	// In this case we are using OpenGL 3.3
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+    // Tell GLFW we are using the CORE profile
+    // So that means we only have the modern functions
+    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+
+#ifdef __APPLE__
+    glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
+#endif
+    //	// Create a GLFWwindow object of 800 by 800 pixels, naming it "YoutubeOpenGL"
+    GLFWwindow* window = glfwCreateWindow(windx, windy, "YoutubeOpenGL", NULL, NULL);
+
+    if (window == NULL)
+    {
+        std::cout << "Failed to create GLFW window" << std::endl;
+        glfwTerminate();
+        return NULL;
+    }
+
+    glfwMakeContextCurrent(window);
+
+    //	//Load GLAD so it configures OpenGL
+    gladLoadGL();
+
+    // set default
+    // doesn't work with 2D Lines????
+//glEnable(GL_DEPTH_TEST);
+
+//std::cout << "Max Vertex Attributes: " << GL_MAX_VERTEX_ATTRIBS << '\n';
+
+//	// Specify the viewport of OpenGL in the Window
+//	// In this case the viewport goes from x = 0, y = 0, to x = 800, y = 800
+    glViewport(0, 0, windx, windy);
+
+    glClearColor(0.17f, 0.15f, 0.27f, 1.0f);
+
+    return window;
+}
+
+//-----------------------------------------
+void processInput(GLFWwindow* window)
+{
+    if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
+        glfwSetWindowShouldClose(window, true);
+}
+
+//---------------------------------------------
+void framebuffer_size_callback(GLFWwindow* window, int width, int height)
+{
+    // make sure the viewport matches the new window dimensions; note that width and 
+    // height will be significantly larger than specified on retina displays.
+    glViewport(0, 0, width, height);
+}
+
 
 //=====================================================
 
