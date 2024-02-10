@@ -80,6 +80,8 @@ int main(int argc, char* argv[])
     glBindVertexArray(0);
     glBindVertexArray(vao[0]);
 
+    // *******  HERE BE WHERE VERTEX BUFFERS BE SET **************
+    
 	// Main while loop
 	while (!glfwWindowShouldClose(window))
 	{
