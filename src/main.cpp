@@ -4,7 +4,7 @@
 #include<GLFW/glfw3.h>
 //#include<stb/stb_image.h>
 
-int linesCMD = 0;
+int CMDLineNum = 0;
 
 const int numVAOs = 1;
 const int numVBOs = 3;
@@ -13,50 +13,11 @@ GLuint vbo[numVBOs];
 
 //--------- Funct Declarations
 
+int DoCmdLine(int, char* []);
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void processInput(GLFWwindow* window);
 
 GLFWwindow* InitGladAndWindow(int width, int height);
-
-//-----------------------------------------------
-int DoCmdLine(int argc, char* argv[])
-{
-    std::cout << "Opengl Lines" << '\n';
-    std::cout << "CMD #Args: " << argc << '\n';
-
-    for (int i = 0; i < argc; i++)
-    {
-        std::cout << i << ": " << argv[i] << '\n';
-
-        // blank or 0, uniform var for line color
-        // 1 texture for line color
-        if (i == 1)
-        {
-            std::string cmd(argv[i]);
-            if (cmd == "1")
-            {
-                std::cout << "Lines->1 Cmd " << '\n';
-                linesCMD = std::stoi(cmd);
-            }
-            else if (cmd == "2")
-            {
-                std::cout << "Lines->2 Cmd " << '\n';
-                linesCMD = std::stoi(cmd);
-            }
-            else if (cmd == "3")
-            {
-                std::cout << "Lines->3 Cmd " << '\n';
-                linesCMD = std::stoi(cmd);
-            }
-            else if (cmd == "4")
-            {
-                std::cout << "Lines->4 Cmd " << '\n';
-                linesCMD = std::stoi(cmd);
-            }
-        }
-    }
-    return 0;
-}
 
 //===================================================
 
@@ -64,6 +25,7 @@ int main(int argc, char* argv[])
 {
     DoCmdLine(argc, argv);
    
+    std::cout << "CMDLineNum: " << CMDLineNum << '\n';
     glfwInit();
 
     GLFWwindow* window = InitGladAndWindow(800, 800);
@@ -166,6 +128,49 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height)
     glViewport(0, 0, width, height);
 }
 
+//------------------------------------------
+int DoCmdLine(int argc, char* argv[])
+{
+    std::cout << "Opengl Lines" << '\n';
+    std::cout << "CMD #Args: " << argc << '\n';
+
+    int ArgvNum = 0;
+
+    for (int i = 0; i < argc; i++)
+    {
+        std::cout << i << ": " << argv[i] << '\n';
+
+        // blank or 0, uniform var for line color
+        // 1 texture for line color
+        if (i == 1)
+        {
+            std::string cmd(argv[i]);
+            if (cmd == "1")
+            {
+                std::cout << "Lines->1 Cmd " << '\n';
+                ArgvNum = std::stoi(cmd);
+            }
+            else if (cmd == "2")
+            {
+                std::cout << "Lines->2 Cmd " << '\n';
+                ArgvNum = std::stoi(cmd);
+            }
+            else if (cmd == "3")
+            {
+                std::cout << "Lines->3 Cmd " << '\n';
+                ArgvNum = std::stoi(cmd);
+            }
+            else if (cmd == "4")
+            {
+                std::cout << "Lines->4 Cmd " << '\n';
+                ArgvNum = std::stoi(cmd);
+            }
+
+            CMDLineNum = ArgvNum;
+        }
+    }
+    return 0;
+}
 
 //=====================================================
 
