@@ -11,6 +11,7 @@ const int numVBOs = 3;
 const int numEBOs = 1;
 GLuint vao[numVAOs];
 GLuint vbo[numVBOs];
+GLuint ebo[numEBOs];
 
 //--------- Funct Declarations
 
@@ -19,6 +20,8 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void processInput(GLFWwindow* window);
 
 GLFWwindow* InitGladAndWindow(int width, int height);
+
+void DoRect(GLuint vvbo, GLuint eebo);
 
 //===================================================
 
@@ -44,7 +47,15 @@ int main(int argc, char* argv[])
     glBindVertexArray(vao[0]);
 
     // *******  HERE BE WHERE VERTEX BUFFERS BE SET **************
-    
+    switch (CMDLineNum)
+    {
+    case 1:
+        DoRect(vbo[0], ebo[0]);
+
+    default:
+        break;
+    }
+
 	// Main while loop
 	while (!glfwWindowShouldClose(window))
 	{
@@ -67,6 +78,20 @@ int main(int argc, char* argv[])
     return 0;
 }
 
+void DoRect(GLuint vbo, GLuint ebo)
+{
+    float vertices[] = {
+        // positions          // colors           // texture coords
+         0.5f,  0.5f, 0.0f,   1.0f, 0.0f, 0.0f,   1.0f, 1.0f, // top right
+         0.5f, -0.5f, 0.0f,   0.0f, 1.0f, 0.0f,   1.0f, 0.0f, // bottom right
+        -0.5f, -0.5f, 0.0f,   0.0f, 0.0f, 1.0f,   0.0f, 0.0f, // bottom left
+        -0.5f,  0.5f, 0.0f,   1.0f, 1.0f, 0.0f,   0.0f, 1.0f  // top left 
+    };
+    unsigned int indices[] = {
+        0, 1, 3, // first triangle
+        1, 2, 3  // second triangle
+    };
+}
 //--------------------------------------------------
 GLFWwindow* InitGladAndWindow(int windx = 800, int windy = 800)
 {
