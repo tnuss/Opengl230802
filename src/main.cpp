@@ -14,7 +14,6 @@ const int numVBOs = 3;
 GLuint renderingProgram;
 GLuint vao[numVAOs];
 GLuint vbo[numVBOs];
-GLuint ebo[numEBOs];
 
 //--------- Funct Declarations
 int main(int argc, char* argv[]);
