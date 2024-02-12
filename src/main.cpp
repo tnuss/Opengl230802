@@ -8,6 +8,7 @@ int CMDLineNum = 0;
 
 const int numVAOs = 1;
 const int numVBOs = 3;
+const int numEBOs = 1;
 GLuint vao[numVAOs];
 GLuint vbo[numVBOs];
 
