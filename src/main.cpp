@@ -2,6 +2,8 @@
 #include<string>
 #include<glad/glad.h>
 #include<GLFW/glfw3.h>
+
+#include "shader.h"
 //#include<stb/stb_image.h>
 
 int CMDLineNum = 0;
@@ -36,8 +38,8 @@ int main(int argc, char* argv[])
     if (window == NULL)
         return -1;
    
-    //Shader shader("resources/shader");
-    //shader.Bind();
+    Shader shader("resources/shader");
+    shader.Bind();
 
     glGenVertexArrays(numVAOs, vao);
     glGenBuffers(numVBOs, vbo);
@@ -59,17 +61,24 @@ int main(int argc, char* argv[])
 	// Main while loop
 	while (!glfwWindowShouldClose(window))
 	{
+        processInput(window);
 		// Specify the color of the background
 		//  glClearColor(0.07f, 0.13f, 0.17f, 1.0f);
 
 		// Clean the back buffer and assign the new color to it
 		glClear(GL_COLOR_BUFFER_BIT);
 
-		// Swap the back buffer with the front buffer
+        //glBindVertexArray(vao[0]);
+        //glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+        // Swap the back buffer with the front buffer
 		glfwSwapBuffers(window);
 		// Take care of all GLFW events
 		glfwPollEvents();
 	}
+
+    glDeleteVertexArrays(1, vao);
+    glDeleteBuffers(1, vbo);
+    glDeleteBuffers(1, ebo);
 
 	glfwDestroyWindow(window);
 	// Terminate GLFW before ending the program
@@ -91,6 +100,26 @@ void DoRect(GLuint vbo, GLuint ebo)
         0, 1, 3, // first triangle
         1, 2, 3  // second triangle
     };
+
+    glBindBuffer(GL_ARRAY_BUFFER, vbo);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
+
+    // position attribute
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0);
+    glEnableVertexAttribArray(0);
+
+    // single color #1 layout var
+    glVertexAttrib4f(1, 0.86f, 0.9f, 0.32f, 1.0f);
+
+    // color attribute
+    //glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(3 * sizeof(float)));
+    //glEnableVertexAttribArray(1);
+    //// texture coord attribute
+    //glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(6 * sizeof(float)));
+    //glEnableVertexAttribArray(2);
 }
 //--------------------------------------------------
 GLFWwindow* InitGladAndWindow(int windx = 800, int windy = 800)
