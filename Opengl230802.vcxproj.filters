@@ -1327,4 +1327,9 @@
   <ItemGroup>
     <Text Include="include\glm\CMakeLists.txt" />
   </ItemGroup>
+  <ItemGroup>
+    <Image Include="resources\brick.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+  </ItemGroup>
 </Project>

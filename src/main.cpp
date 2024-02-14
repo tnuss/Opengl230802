@@ -6,7 +6,7 @@
 #include "shader.h"
 //#include<stb/stb_image.h>
 
-int CMDLineNum = 0;
+int CMDLineNum = 1;
 
 const int numVAOs = 1;
 const int numVBOs = 3;
@@ -23,7 +23,7 @@ void processInput(GLFWwindow* window);
 
 GLFWwindow* InitGladAndWindow(int width, int height);
 
-void DoRect(GLuint vvbo, GLuint eebo);
+int DoRect(GLuint vvbo, GLuint eebo);
 
 //===================================================
 
@@ -43,16 +43,19 @@ int main(int argc, char* argv[])
 
     glGenVertexArrays(numVAOs, vao);
     glGenBuffers(numVBOs, vbo);
+    glGenBuffers(numEBOs, ebo);
 
     // clear then activate vao
     glBindVertexArray(0);
     glBindVertexArray(vao[0]);
 
     // *******  HERE BE WHERE VERTEX BUFFERS BE SET **************
+
+    int numIndices = 0;
     switch (CMDLineNum)
     {
     case 1:
-        DoRect(vbo[0], ebo[0]);
+       numIndices = DoRect(vbo[0], ebo[0]);
 
     default:
         break;
@@ -67,9 +70,21 @@ int main(int argc, char* argv[])
 
 		// Clean the back buffer and assign the new color to it
 		glClear(GL_COLOR_BUFFER_BIT);
+        //glEnable(GL_DEPTH_TEST);
+        //glDepthFunc(GL_LEQUAL);
 
+        //glFrontFace(GL_CCW);
+        //glFrontFace(GL_CCW);
         //glBindVertexArray(vao[0]);
-        //glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+        
+        switch (CMDLineNum)
+        {
+        case 1:
+            glDrawElements(GL_TRIANGLES, numIndices, GL_UNSIGNED_INT, 0);
+        
+        default:
+            break;
+        }
         // Swap the back buffer with the front buffer
 		glfwSwapBuffers(window);
 		// Take care of all GLFW events
@@ -87,7 +102,7 @@ int main(int argc, char* argv[])
     return 0;
 }
 
-void DoRect(GLuint vbo, GLuint ebo)
+int DoRect(GLuint vbo, GLuint ebo)
 {
     float vertices[] = {
         // positions          // colors           // texture coords
@@ -114,6 +129,7 @@ void DoRect(GLuint vbo, GLuint ebo)
     // single color #1 layout var
     glVertexAttrib4f(1, 0.86f, 0.9f, 0.32f, 1.0f);
 
+    return 6; // element count
     // color attribute
     //glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(3 * sizeof(float)));
     //glEnableVertexAttribArray(1);

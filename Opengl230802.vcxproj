@@ -600,6 +600,9 @@
   <ItemGroup>
     <Text Include="include\glm\CMakeLists.txt" />
   </ItemGroup>
+  <ItemGroup>
+    <Image Include="resources\brick.png" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>
