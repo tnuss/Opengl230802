@@ -4,9 +4,10 @@
 #include<GLFW/glfw3.h>
 
 #include "shader.h"
+#include "texture.h"
 //#include<stb/stb_image.h>
 
-int CMDLineNum = 1;
+int CMDLineNum = 2;
 
 const int numVAOs = 1;
 const int numVBOs = 3;
@@ -57,9 +58,13 @@ int main(int argc, char* argv[])
     {
     case 1:
        numIndices = DoRect(vbo[0], ebo[0]);
+       if (numIndices < 1)
+           return -1;
 
     case 2:
         numIndices = DoRectTexture(vbo[0], ebo[0]);
+        if (numIndices < 1)
+            return -1;
 
     default:
         break;
@@ -83,9 +88,14 @@ int main(int argc, char* argv[])
         
         switch (CMDLineNum)
         {
+            // pos and color as a uniform
         case 1:
             glDrawElements(GL_TRIANGLES, numIndices, GL_UNSIGNED_INT, 0);
         
+            // pos, texture
+        case 2:
+            glDrawElements(GL_TRIANGLES, numIndices, GL_UNSIGNED_INT, 0);
+
         default:
             break;
         }
@@ -108,6 +118,10 @@ int main(int argc, char* argv[])
 //------------------------------------------------
 int DoRectTexture(GLuint vbo, GLuint ebo)
 {
+    Texture texture("resources/brick.png");
+    if (!texture.IsTextureLoaded())
+        return -1;
+
     float vertices[] = {
         // positions          // colors           // texture coords
          0.5f,  0.5f, 0.0f,   1.0f, 0.0f, 0.0f,   1.0f, 1.0f, // top right
@@ -132,12 +146,19 @@ int DoRectTexture(GLuint vbo, GLuint ebo)
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0);
     glEnableVertexAttribArray(0);
 
+      // texture coord attribute
+    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(6 * sizeof(float)));
+    glEnableVertexAttribArray(1);
+
     // single color #1 layout var
-    glVertexAttrib4f(1, 0.86f, 0.9f, 0.32f, 1.0f);
+    glVertexAttrib4f(2, 0.86f, 0.9f, 0.32f, 1.0f);
 
     //// texture coord attribute
     //glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(6 * sizeof(float)));
     //glEnableVertexAttribArray(2);
+
+    // --- need to keep track of which texture unit that is being used??????
+    texture.Bind(0);
 
     return numElementIndices; // element count
     // color attribute
