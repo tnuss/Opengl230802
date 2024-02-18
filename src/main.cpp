@@ -1,5 +1,6 @@
 #include<iostream>
 #include<string>
+#include<vector>
 #include<glad/glad.h>
 #include<GLFW/glfw3.h>
 
@@ -27,6 +28,11 @@ GLFWwindow* InitGladAndWindow(int width, int height);
 int DoRect(GLuint vvbo, GLuint eebo);
 int DoRectTexture(GLuint vvbo, GLuint eebo);
 
+std::vector<Texture*> vecTextures;
+
+//======= SO WHY DOES THE TEXTURE WORK NOW ==========
+//         I JUST REARRAGED CODE A BIT ...
+//            maybe since the texture was created locally in the DoRectTexture()
 //===================================================
 
 int main(int argc, char* argv[])
@@ -47,6 +53,18 @@ int main(int argc, char* argv[])
     glGenBuffers(numVBOs, vbo);
     glGenBuffers(numEBOs, ebo);
 
+    unsigned int texUnit = 0;
+    //Texture tex = Texture("resources/bricks.jpg", shader, texUnit);
+    Texture tex("resources/brick.png", shader, texUnit);
+    if (!tex.IsTextureLoaded())
+        return -1;
+    
+      // NOTE!! EXAMPLE FOR USING VECTOR OF TEXTURES???
+    vecTextures.push_back(&tex);
+    Texture* rTex = NULL;
+    rTex = vecTextures[vecTextures.size()-1];
+    // NOTE!! FOR USING VECTOR OF TEXTURES???
+
     // clear then activate vao
     glBindVertexArray(0);
     glBindVertexArray(vao[0]);
@@ -54,6 +72,7 @@ int main(int argc, char* argv[])
     // *******  HERE BE WHERE VERTEX BUFFERS BE SET **************
 
     int numIndices = 0;
+
     switch (CMDLineNum)
     {
     case 1:
@@ -70,12 +89,13 @@ int main(int argc, char* argv[])
         break;
     }
 
+    // Specify the color of the background
+    glClearColor(0.07f, 0.13f, 0.17f, 1.0f);
+
 	// Main while loop
 	while (!glfwWindowShouldClose(window))
 	{
         processInput(window);
-		// Specify the color of the background
-		//  glClearColor(0.07f, 0.13f, 0.17f, 1.0f);
 
 		// Clean the back buffer and assign the new color to it
 		glClear(GL_COLOR_BUFFER_BIT);
@@ -85,7 +105,14 @@ int main(int argc, char* argv[])
         //glFrontFace(GL_CCW);
         //glFrontFace(GL_CCW);
         //glBindVertexArray(vao[0]);
-        
+            // --- need to keep track of which texture unit that is being used??????
+
+                // WHY DON"T WE NEED THIS BECAUSE ONLY ONE TEXTURE????? MAYBE?????
+        //rTex->Bind();
+        //tex.Bind();
+                // WHY DON"T WE NEED THIS BECAUSE ONLY ONE TEXTURE????? MAYBE?????
+        //glUniform1i(glGetUniformLocation(shader.GetShaderProgram(), "recvTexture"), 0);
+
         switch (CMDLineNum)
         {
             // pos and color as a uniform
@@ -118,9 +145,6 @@ int main(int argc, char* argv[])
 //------------------------------------------------
 int DoRectTexture(GLuint vbo, GLuint ebo)
 {
-    Texture texture("resources/brick.png");
-    if (!texture.IsTextureLoaded())
-        return -1;
 
     float vertices[] = {
         // positions          // colors           // texture coords
@@ -158,7 +182,8 @@ int DoRectTexture(GLuint vbo, GLuint ebo)
     //glEnableVertexAttribArray(2);
 
     // --- need to keep track of which texture unit that is being used??????
-    texture.Bind(0);
+    //tex.Bind(0);
+    //glUniform1i(glGetUniformLocation(shader.GetShaderProgram(), "recvTexture"), 0);
 
     return numElementIndices; // element count
     // color attribute
@@ -213,8 +238,8 @@ GLFWwindow* InitGladAndWindow(int windx = 800, int windy = 800)
     //
      //	// Tell GLFW what version of OpenGL we are using 
      //	// In this case we are using OpenGL 3.3
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 5);
     // Tell GLFW we are using the CORE profile
     // So that means we only have the modern functions
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
