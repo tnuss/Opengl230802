@@ -4,11 +4,15 @@
 #include<glad/glad.h>
 #include<GLFW/glfw3.h>
 
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
+
 #include "shader.h"
 #include "texture.h"
 //#include<stb/stb_image.h>
 
-int CMDLineNum = 2;
+int CMDLineNum = 3;
 
 const int numVAOs = 1;
 const int numVBOs = 3;
@@ -26,6 +30,7 @@ void processInput(GLFWwindow* window);
 GLFWwindow* InitGladAndWindow(int width, int height);
 
 int DoRect(GLuint vvbo, GLuint eebo);
+int DoCube(GLuint vvbo, GLuint eebo);
 int DoRectTexture(GLuint vvbo, GLuint eebo);
 
 std::vector<Texture*> vecTextures;
@@ -38,21 +43,43 @@ std::vector<Texture*> vecTextures;
 int main(int argc, char* argv[])
 {
     DoCmdLine(argc, argv);
-   
+
     std::cout << "CMDLineNum: " << CMDLineNum << '\n';
     glfwInit();
 
     GLFWwindow* window = InitGladAndWindow(800, 800);
     if (window == NULL)
         return -1;
-   
-    Shader shader("resources/shader");
+
+    std::string shaderDirName = "resources/";
+    std::string vertFileName = shaderDirName;
+    std::string fragFileName = shaderDirName;
+
+    switch (CMDLineNum)
+    {
+        case 1:
+        case 2:
+            vertFileName += "shader";
+            fragFileName += "shader";
+            break;
+
+        case 3:
+            vertFileName += "Shdr-Cube";
+            fragFileName += "Shdr-Cube";
+            break;
+
+        default:
+            break;
+    }
+
+    Shader shader(vertFileName, fragFileName);
     shader.Bind();
 
     glGenVertexArrays(numVAOs, vao);
     glGenBuffers(numVBOs, vbo);
     glGenBuffers(numEBOs, ebo);
 
+            // Load textures
     unsigned int texUnit = 0;
     //Texture tex = Texture("resources/bricks.jpg", shader, texUnit);
     Texture tex("resources/brick.png", shader, texUnit);
@@ -79,18 +106,32 @@ int main(int argc, char* argv[])
        numIndices = DoRect(vbo[0], ebo[0]);
        if (numIndices < 1)
            return -1;
+       break;
 
     case 2:
         numIndices = DoRectTexture(vbo[0], ebo[0]);
         if (numIndices < 1)
             return -1;
+        break;
+
+    case 3:
+        numIndices = DoCube(vbo[0], ebo[0]);
+        if (numIndices < 1)
+            return -1;
+        break;
 
     default:
         break;
     }
 
+    glm::mat4 mScale = glm::mat4(1.0f);
+    mScale = glm::scale(mScale, glm::vec3(0.5, 0.5, 0.5));
+    unsigned int scaleLoc = glGetUniformLocation(shader.GetShaderProgram(), "scale");
+    glUniformMatrix4fv(scaleLoc, 1, GL_FALSE, glm::value_ptr(mScale));
+
     // Specify the color of the background
     glClearColor(0.07f, 0.13f, 0.17f, 1.0f);
+   // glEnable(GL_DEPTH_TEST);
 
 	// Main while loop
 	while (!glfwWindowShouldClose(window))
@@ -98,7 +139,8 @@ int main(int argc, char* argv[])
         processInput(window);
 
 		// Clean the back buffer and assign the new color to it
-		glClear(GL_COLOR_BUFFER_BIT);
+        //glClear(GL_COLOR_BUFFER_BIT);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         //glEnable(GL_DEPTH_TEST);
         //glDepthFunc(GL_LEQUAL);
 
@@ -118,10 +160,15 @@ int main(int argc, char* argv[])
             // pos and color as a uniform
         case 1:
             glDrawElements(GL_TRIANGLES, numIndices, GL_UNSIGNED_INT, 0);
-        
+            break;
             // pos, texture
         case 2:
             glDrawElements(GL_TRIANGLES, numIndices, GL_UNSIGNED_INT, 0);
+            break;
+            // cube
+        case 3:
+            glDrawArrays(GL_TRIANGLES, 0, numIndices);
+            break;
 
         default:
             break;
@@ -135,6 +182,7 @@ int main(int argc, char* argv[])
     glDeleteVertexArrays(1, vao);
     glDeleteBuffers(1, vbo);
     glDeleteBuffers(1, ebo);
+    tex.~Texture();
 
 	glfwDestroyWindow(window);
 	// Terminate GLFW before ending the program
@@ -142,6 +190,41 @@ int main(int argc, char* argv[])
 
     return 0;
 }
+//-----------------------------------------
+int DoCube(GLuint vbo, GLuint ebo)
+{
+        // 2 X 2 X 2 cube, each line a triangle, just position data
+    float vertsCube[108] = {
+    -1.0f, 1.0f, -1.0f, -1.0f, -1.0f, -1.0f, 1.0f, -1.0f, -1.0f,
+    1.0f, -1.0f, -1.0f, 1.0f, 1.0f, -1.0f, -1.0f, 1.0f, -1.0f,
+    1.0f, -1.0f, -1.0f, 1.0f, -1.0f, 1.0f, 1.0f, 1.0f, -1.0f,
+    1.0f, -1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f, -1.0f,
+    1.0f, -1.0f, 1.0f, -1.0f, -1.0f, 1.0f, 1.0f, 1.0f, 1.0f,
+    -1.0f, -1.0f, 1.0f, -1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f,
+    -1.0f, -1.0f, 1.0f, -1.0f, -1.0f, -1.0f, -1.0f, 1.0f, 1.0f,
+    -1.0f, -1.0f, -1.0f, -1.0f, 1.0f, -1.0f, -1.0f, 1.0f, 1.0f,
+    -1.0f, -1.0f, 1.0f, 1.0f, -1.0f, 1.0f, 1.0f, -1.0f, -1.0f,
+    1.0f, -1.0f, -1.0f, -1.0f, -1.0f, -1.0f, -1.0f, -1.0f, 1.0f,
+    -1.0f, 1.0f, -1.0f, 1.0f, 1.0f, -1.0f, 1.0f, 1.0f, 1.0f,
+    1.0f, 1.0f, 1.0f, -1.0f, 1.0f, 1.0f, -1.0f, 1.0f, -1.0f
+    };
+
+    glBindBuffer(GL_ARRAY_BUFFER, vbo);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(vertsCube), vertsCube, GL_STATIC_DRAW);
+
+    //glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
+    //glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
+
+    // position attribute
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+    glEnableVertexAttribArray(0);
+
+    // single color #1 layout var
+    glVertexAttrib4f(1, 0.86f, 0.9f, 0.32f, 1.0f);
+
+    return 36;
+}
+
 //------------------------------------------------
 int DoRectTexture(GLuint vbo, GLuint ebo)
 {
@@ -174,7 +257,7 @@ int DoRectTexture(GLuint vbo, GLuint ebo)
     glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(6 * sizeof(float)));
     glEnableVertexAttribArray(1);
 
-    // single color #1 layout var
+    // single color #2 layout var
     glVertexAttrib4f(2, 0.86f, 0.9f, 0.32f, 1.0f);
 
     //// texture coord attribute

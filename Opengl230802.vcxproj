@@ -587,6 +587,8 @@
     <None Include="resources\shader.vert">
       <FileType>CppCode</FileType>
     </None>
+    <None Include="resources\Shdr-Cube.frag" />
+    <None Include="resources\Shdr-Cube.vert" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="include\glm\detail\glm.cpp" />

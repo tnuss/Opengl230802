@@ -1,5 +1,6 @@
 #version 450 core
 
+  // works for shapes 1, 2
 in vec2 fs_texCoords;
 in vec4 fs_color;
 
