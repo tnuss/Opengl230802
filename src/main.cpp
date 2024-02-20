@@ -69,6 +69,7 @@ int main(int argc, char* argv[])
             break;
 
         default:
+            return 0;
             break;
     }
 
@@ -79,7 +80,8 @@ int main(int argc, char* argv[])
     glGenBuffers(numVBOs, vbo);
     glGenBuffers(numEBOs, ebo);
 
-            // Load textures
+            // Load textures ... texUnit will assign 0, 1, 2 ... to texture for 
+            // use with multiple textures
     unsigned int texUnit = 0;
     //Texture tex = Texture("resources/bricks.jpg", shader, texUnit);
     Texture tex("resources/brick.png", shader, texUnit);
@@ -115,6 +117,7 @@ int main(int argc, char* argv[])
         break;
 
     case 3:
+            // indices in this case is number of vertexes...
         numIndices = DoCube(vbo[0], ebo[0]);
         if (numIndices < 1)
             return -1;
@@ -125,9 +128,14 @@ int main(int argc, char* argv[])
     }
 
     glm::mat4 mScale = glm::mat4(1.0f);
-    mScale = glm::scale(mScale, glm::vec3(0.5, 0.5, 0.5));
+    mScale = glm::scale(mScale, glm::vec3(0.75, 0.75, 0.75));
     unsigned int scaleLoc = glGetUniformLocation(shader.GetShaderProgram(), "scale");
+      // rotate
+    mScale = glm::rotate(mScale, 1.0f, glm::vec3(0.0f, 1.0f, 1.0f));
+
     glUniformMatrix4fv(scaleLoc, 1, GL_FALSE, glm::value_ptr(mScale));
+
+    //glm::mat4 rotMat = glm::rotate(mScale, (float)glfwGetTime(), glm::vec3(0.0f, 0.0f, 1.0f));
 
     // Specify the color of the background
     glClearColor(0.07f, 0.13f, 0.17f, 1.0f);
@@ -141,19 +149,23 @@ int main(int argc, char* argv[])
 		// Clean the back buffer and assign the new color to it
         //glClear(GL_COLOR_BUFFER_BIT);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-        //glEnable(GL_DEPTH_TEST);
+        glEnable(GL_DEPTH_TEST);
         //glDepthFunc(GL_LEQUAL);
+        // 
+        //glFrontFace(GL_CCW);
+        //glFrontFace(GL_CW);
 
-        //glFrontFace(GL_CCW);
-        //glFrontFace(GL_CCW);
         //glBindVertexArray(vao[0]);
             // --- need to keep track of which texture unit that is being used??????
 
                 // WHY DON"T WE NEED THIS BECAUSE ONLY ONE TEXTURE????? MAYBE?????
+                // if 2+ textures then need to activate and bind each before drawing
         //rTex->Bind();
         //tex.Bind();
                 // WHY DON"T WE NEED THIS BECAUSE ONLY ONE TEXTURE????? MAYBE?????
         //glUniform1i(glGetUniformLocation(shader.GetShaderProgram(), "recvTexture"), 0);
+       // tex.Bind();
+       //glBindVertexArray(vao[0]);
 
         switch (CMDLineNum)
         {
@@ -193,21 +205,66 @@ int main(int argc, char* argv[])
 //-----------------------------------------
 int DoCube(GLuint vbo, GLuint ebo)
 {
-        // 2 X 2 X 2 cube, each line a triangle, just position data
-    float vertsCube[108] = {
-    -1.0f, 1.0f, -1.0f, -1.0f, -1.0f, -1.0f, 1.0f, -1.0f, -1.0f,
-    1.0f, -1.0f, -1.0f, 1.0f, 1.0f, -1.0f, -1.0f, 1.0f, -1.0f,
-    1.0f, -1.0f, -1.0f, 1.0f, -1.0f, 1.0f, 1.0f, 1.0f, -1.0f,
-    1.0f, -1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f, -1.0f,
-    1.0f, -1.0f, 1.0f, -1.0f, -1.0f, 1.0f, 1.0f, 1.0f, 1.0f,
-    -1.0f, -1.0f, 1.0f, -1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f,
-    -1.0f, -1.0f, 1.0f, -1.0f, -1.0f, -1.0f, -1.0f, 1.0f, 1.0f,
-    -1.0f, -1.0f, -1.0f, -1.0f, 1.0f, -1.0f, -1.0f, 1.0f, 1.0f,
-    -1.0f, -1.0f, 1.0f, 1.0f, -1.0f, 1.0f, 1.0f, -1.0f, -1.0f,
-    1.0f, -1.0f, -1.0f, -1.0f, -1.0f, -1.0f, -1.0f, -1.0f, 1.0f,
-    -1.0f, 1.0f, -1.0f, 1.0f, 1.0f, -1.0f, 1.0f, 1.0f, 1.0f,
-    1.0f, 1.0f, 1.0f, -1.0f, 1.0f, 1.0f, -1.0f, 1.0f, -1.0f
-    };
+        // 2 X 2 X 2 cube, each line a triangle, position data only
+    //float vertsCube[108] = 
+    //{
+    //    -1.0f, 1.0f, -1.0f, -1.0f, -1.0f, -1.0f, 1.0f, -1.0f, -1.0f,
+    //    1.0f, -1.0f, -1.0f, 1.0f, 1.0f, -1.0f, -1.0f, 1.0f, -1.0f,
+    //    1.0f, -1.0f, -1.0f, 1.0f, -1.0f, 1.0f, 1.0f, 1.0f, -1.0f,
+    //    1.0f, -1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f, -1.0f,
+    //    1.0f, -1.0f, 1.0f, -1.0f, -1.0f, 1.0f, 1.0f, 1.0f, 1.0f,
+    //    -1.0f, -1.0f, 1.0f, -1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f,
+    //    -1.0f, -1.0f, 1.0f, -1.0f, -1.0f, -1.0f, -1.0f, 1.0f, 1.0f,
+    //    -1.0f, -1.0f, -1.0f, -1.0f, 1.0f, -1.0f, -1.0f, 1.0f, 1.0f,
+    //    -1.0f, -1.0f, 1.0f, 1.0f, -1.0f, 1.0f, 1.0f, -1.0f, -1.0f,
+    //    1.0f, -1.0f, -1.0f, -1.0f, -1.0f, -1.0f, -1.0f, -1.0f, 1.0f,
+    //    -1.0f, 1.0f, -1.0f, 1.0f, 1.0f, -1.0f, 1.0f, 1.0f, 1.0f,
+    //    1.0f, 1.0f, 1.0f, -1.0f, 1.0f, 1.0f, -1.0f, 1.0f, -1.0f
+    //};
+
+float vertsCube[] = {
+    -0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
+     0.5f, -0.5f, -0.5f,  1.0f, 0.0f,
+     0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+     0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+    -0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
+    -0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
+
+    -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+     0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
+     0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
+     0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
+    -0.5f,  0.5f,  0.5f,  0.0f, 1.0f,
+    -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+
+    -0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+    -0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+    -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+    -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+    -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+    -0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+
+     0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+     0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+     0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+     0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+     0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+     0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+
+    -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+     0.5f, -0.5f, -0.5f,  1.0f, 1.0f,
+     0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
+     0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
+    -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+    -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+
+    -0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
+     0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+     0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+     0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+    -0.5f,  0.5f,  0.5f,  0.0f, 0.0f,
+    -0.5f,  0.5f, -0.5f,  0.0f, 1.0f
+};
 
     glBindBuffer(GL_ARRAY_BUFFER, vbo);
     glBufferData(GL_ARRAY_BUFFER, sizeof(vertsCube), vertsCube, GL_STATIC_DRAW);
@@ -216,12 +273,17 @@ int DoCube(GLuint vbo, GLuint ebo)
     //glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
 
     // position attribute
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
     glEnableVertexAttribArray(0);
 
-    // single color #1 layout var
-    glVertexAttrib4f(1, 0.86f, 0.9f, 0.32f, 1.0f);
+        // texture coords
+    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));
+    glEnableVertexAttribArray(1);
 
+    // single color #2 layout var
+    glVertexAttrib4f(2, 0.86f, 0.9f, 0.32f, 1.0f);
+
+        // return #vertices
     return 36;
 }
 
