@@ -25,7 +25,7 @@ GLFWwindow* InitGladAndWindow();
 
 //----------------------------------------------
        // default argv
-int linesCMD = 5;
+int linesCMD = 6;
     // line examples 'class'
 LineExamples linesInst;
 
@@ -61,6 +61,11 @@ int DoCmdLine(int argc, char* argv[])
             else if (cmd == "4")
             {
                 std::cout << "Lines->4 Cmd " << '\n';
+                linesCMD = std::stoi(cmd);
+            }
+            else if (cmd == "5")
+            {
+                std::cout << "Lines->5 Cmd " << '\n';
                 linesCMD = std::stoi(cmd);
             }
         }
@@ -132,6 +137,12 @@ int DoLineExamples()
         //linesInst.SetNumInstances(9);
         //linesInst.lines3(vbo[0]);
     }
+    if (linesCMD == 6)
+    {
+
+        // set and activate(bind) the graphics buffers
+        linesInst.linesXYZ(vbo[0]);
+    }
 
     return 0;
 }
@@ -196,6 +207,12 @@ int main(int argc, char* argv[])
                 //glDrawArrays(GL_LINE_STRIP, 0, linesInst.GetNumVertices());
                 glDrawArraysInstanced(GL_LINE_STRIP, 0, linesInst.GetNumVertices(),
                     linesInst.GetNumInstances());
+            }
+                     // 1, 2, lineXYZ
+            else
+            {
+                glDrawArrays(GL_LINE_STRIP, 0, 2);
+                glDrawArrays(GL_LINE_STRIP, 2, linesInst.GetNumVertices());
             }
         }
         else if (linesInst.DoLineLoop())
