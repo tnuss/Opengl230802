@@ -68,6 +68,11 @@ int DoCmdLine(int argc, char* argv[])
                 std::cout << "Lines->5 Cmd " << '\n';
                 linesCMD = std::stoi(cmd);
             }
+            else if (cmd == "6")
+            {
+                std::cout << "Lines->6 Cmd " << '\n';
+                linesCMD = std::stoi(cmd);
+            }
         }
     }
     return 0;
@@ -209,10 +214,16 @@ int main(int argc, char* argv[])
                     linesInst.GetNumInstances());
             }
                      // 1, 2, lineXYZ
+            else if (linesCMD == 6)
+            {
+                glDrawArrays(GL_LINES, 0, 2);
+                glDrawArrays(GL_LINES, 2, 4);
+                // NEED PERSPECTIVE/ORTHO to VIEW Z LINE????
+               // glDrawArrays(GL_LINES, 4, linesInst.GetNumVertices());
+            }
             else
             {
-                glDrawArrays(GL_LINE_STRIP, 0, 2);
-                glDrawArrays(GL_LINE_STRIP, 2, linesInst.GetNumVertices());
+                glDrawArrays(GL_LINES, 0, linesInst.GetNumVertices());
             }
         }
         else if (linesInst.DoLineLoop())

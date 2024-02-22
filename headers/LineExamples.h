@@ -39,13 +39,18 @@ public:
     {
         GLfloat vertices[] =
         { //    COORDINATES                  /     COLORS           //
-            -1.0f,  0.0f, 0.0f,   0.8f, 0.0f, 0.00f, 1.0f, // Lower left
-             1.0f,  0.0f, 0.0f,   0.8f, 0.0f, 0.00f, 1.0f, // Lower r
-             0.0f,  1.0f, 0.0f,   0.8f, 0.0f, 0.00f, 1.0f,  // up r
-             0.0f, -1.0f, 0.0f,   0.8f, 0.0f, 0.00f, 1.0f  // up r
+            -1.0f,  0.0f,  0.0f,   0.8f, 0.0f, 0.00f, 1.0f, // Lower left
+             1.0f,  0.0f,  0.0f,   0.8f, 0.0f, 0.00f, 1.0f, // Lower r
+             0.0f,  1.0f,  0.0f,   0.8f, 0.0f, 0.00f, 1.0f,  // 
+             0.0f, -1.0f,  0.0f,   0.8f, 0.0f, 0.00f, 1.0f,  // 
+
+                // NEED PERSPECTIVE/ORTHO to VIEW Z LINE????
+
+             0.0f,  0.0f, -1.0f,   0.8f, 0.0f, 0.00f, 1.0f,  // 
+             0.0f,  0.0f,  1.0f,   0.8f, 0.0f, 0.00f, 1.0f  // 
         };
 
-        numVertices = 4;
+        numVertices = 6;
         doLineStrip = true;
         doLineLoop = false;
 
@@ -56,10 +61,10 @@ public:
         glEnableVertexAttribArray(0);
 
         //// if the vertex data changes this would go in display loop YES/NO??
-        //glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, sizeof(float) * 7, (void*)(3 * sizeof(float)));
-        //glEnableVertexAttribArray(1);
+        glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, sizeof(float) * 7, (void*)(3 * sizeof(float)));
+        glEnableVertexAttribArray(1);
         // single color #1 layout var
-        glVertexAttrib4f(1, 0.86f, 0.9f, 0.32f, 1.0f);
+       // glVertexAttrib4f(1, 0.86f, 0.9f, 0.32f, 1.0f);
 
     }
     //----------------------------------------------------
