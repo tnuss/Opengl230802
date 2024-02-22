@@ -1,6 +1,7 @@
 #include<iostream>
 #include<string>
 #include<vector>
+#include"windows.h"
 #include<glad/glad.h>
 #include<GLFW/glfw3.h>
 
@@ -30,8 +31,11 @@ void processInput(GLFWwindow* window);
 GLFWwindow* InitGladAndWindow(int width, int height);
 
 int DoRect(GLuint vvbo, GLuint eebo);
-int DoCube(GLuint vvbo, GLuint eebo);
+int DoCube(GLuint vvbo, GLuint eebo, Shader& sshader);
 int DoRectTexture(GLuint vvbo, GLuint eebo);
+float radVar = 0.1f;
+GLint scaleLoc = 0;
+glm::mat4 m4Scale;
 
 std::vector<Texture*> vecTextures;
 
@@ -118,7 +122,8 @@ int main(int argc, char* argv[])
 
     case 3:
             // indices in this case is number of vertexes...
-        numIndices = DoCube(vbo[0], ebo[0]);
+            // also rotates
+        numIndices = DoCube(vbo[0], ebo[0], shader);
         if (numIndices < 1)
             return -1;
         break;
@@ -127,25 +132,33 @@ int main(int argc, char* argv[])
         break;
     }
 
-    glm::mat4 mScale = glm::mat4(1.0f);
-    mScale = glm::scale(mScale, glm::vec3(0.75, 0.75, 0.75));
-    unsigned int scaleLoc = glGetUniformLocation(shader.GetShaderProgram(), "scale");
-      // rotate
-    mScale = glm::rotate(mScale, 1.0f, glm::vec3(0.0f, 1.0f, 1.0f));
-
-    glUniformMatrix4fv(scaleLoc, 1, GL_FALSE, glm::value_ptr(mScale));
-
-    //glm::mat4 rotMat = glm::rotate(mScale, (float)glfwGetTime(), glm::vec3(0.0f, 0.0f, 1.0f));
-
     // Specify the color of the background
     glClearColor(0.07f, 0.13f, 0.17f, 1.0f);
    // glEnable(GL_DEPTH_TEST);
 
-	// Main while loop
+    LARGE_INTEGER frequency;        // ticks per second
+    LARGE_INTEGER t1, t2;           // ticks
+    double elapsedTime = 0;
+        // get ticks per second --- uses windows.h
+    QueryPerformanceFrequency(&frequency);
+        // start timer
+    QueryPerformanceCounter(&t1);
+
 	while (!glfwWindowShouldClose(window))
 	{
         processInput(window);
 
+        QueryPerformanceCounter(&t2);
+             // in millisecs
+        elapsedTime = (t2.QuadPart - t1.QuadPart) * 1000.0 / frequency.QuadPart;
+        if (elapsedTime > 50.0)
+        {
+            std::cout << elapsedTime << " ms.\n";
+            radVar += .15;
+            QueryPerformanceCounter(&t1);
+            if (radVar > 1000000.0)
+                radVar = 0.1f;
+        }
 		// Clean the back buffer and assign the new color to it
         //glClear(GL_COLOR_BUFFER_BIT);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -155,9 +168,11 @@ int main(int argc, char* argv[])
         //glFrontFace(GL_CCW);
         //glFrontFace(GL_CW);
 
+             // MAY NEED TO BIND WHICH VAO IF HAVE MULTIPLE ONES
         //glBindVertexArray(vao[0]);
+             // MAY NEED TO BIND WHICH VAO IF HAVE MULTIPLE ONES
+             
             // --- need to keep track of which texture unit that is being used??????
-
                 // WHY DON"T WE NEED THIS BECAUSE ONLY ONE TEXTURE????? MAYBE?????
                 // if 2+ textures then need to activate and bind each before drawing
         //rTex->Bind();
@@ -166,6 +181,13 @@ int main(int argc, char* argv[])
         //glUniform1i(glGetUniformLocation(shader.GetShaderProgram(), "recvTexture"), 0);
        // tex.Bind();
        //glBindVertexArray(vao[0]);
+
+                 // ABSTRACT THIS OUT
+        m4Scale = glm::mat4(1.0f);
+        m4Scale = glm::rotate(m4Scale, radVar, glm::vec3(0.0f, 1.0f, 1.0f));
+        glUniformMatrix4fv(scaleLoc, 1, GL_FALSE, glm::value_ptr(m4Scale));
+                 // ABSTRACT THIS OUT
+
 
         switch (CMDLineNum)
         {
@@ -177,7 +199,7 @@ int main(int argc, char* argv[])
         case 2:
             glDrawElements(GL_TRIANGLES, numIndices, GL_UNSIGNED_INT, 0);
             break;
-            // cube
+            // cube 
         case 3:
             glDrawArrays(GL_TRIANGLES, 0, numIndices);
             break;
@@ -203,24 +225,10 @@ int main(int argc, char* argv[])
     return 0;
 }
 //-----------------------------------------
-int DoCube(GLuint vbo, GLuint ebo)
+int DoCube(GLuint vbo, GLuint ebo, Shader& shader)
 {
-        // 2 X 2 X 2 cube, each line a triangle, position data only
-    //float vertsCube[108] = 
-    //{
-    //    -1.0f, 1.0f, -1.0f, -1.0f, -1.0f, -1.0f, 1.0f, -1.0f, -1.0f,
-    //    1.0f, -1.0f, -1.0f, 1.0f, 1.0f, -1.0f, -1.0f, 1.0f, -1.0f,
-    //    1.0f, -1.0f, -1.0f, 1.0f, -1.0f, 1.0f, 1.0f, 1.0f, -1.0f,
-    //    1.0f, -1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f, -1.0f,
-    //    1.0f, -1.0f, 1.0f, -1.0f, -1.0f, 1.0f, 1.0f, 1.0f, 1.0f,
-    //    -1.0f, -1.0f, 1.0f, -1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f,
-    //    -1.0f, -1.0f, 1.0f, -1.0f, -1.0f, -1.0f, -1.0f, 1.0f, 1.0f,
-    //    -1.0f, -1.0f, -1.0f, -1.0f, 1.0f, -1.0f, -1.0f, 1.0f, 1.0f,
-    //    -1.0f, -1.0f, 1.0f, 1.0f, -1.0f, 1.0f, 1.0f, -1.0f, -1.0f,
-    //    1.0f, -1.0f, -1.0f, -1.0f, -1.0f, -1.0f, -1.0f, -1.0f, 1.0f,
-    //    -1.0f, 1.0f, -1.0f, 1.0f, 1.0f, -1.0f, 1.0f, 1.0f, 1.0f,
-    //    1.0f, 1.0f, 1.0f, -1.0f, 1.0f, 1.0f, -1.0f, 1.0f, -1.0f
-    //};
+       // THIS ROTATES AS WELL
+       // ====================
 
 float vertsCube[] = {
     -0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
@@ -282,6 +290,25 @@ float vertsCube[] = {
 
     // single color #2 layout var
     glVertexAttrib4f(2, 0.86f, 0.9f, 0.32f, 1.0f);
+
+                 // ABSTRACT THIS OUT
+    m4Scale = glm::mat4(1.0f);
+    m4Scale = glm::scale(m4Scale, glm::vec3(0.75, 0.75, 0.75));
+    scaleLoc = 0;
+    scaleLoc = glGetUniformLocation(shader.GetShaderProgram(), "scale_matrix");
+    if (scaleLoc < 1)
+    {
+        std::cout << "Shader scale_matrix uniform Lookup Error: " << scaleLoc << '\n';
+        return -1;
+    }
+    // rotate
+    radVar = 0.1f;
+    m4Scale = glm::rotate(m4Scale, radVar, glm::vec3(0.0f, 1.0f, 1.0f));
+
+    glUniformMatrix4fv(scaleLoc, 1, GL_FALSE, glm::value_ptr(m4Scale));
+
+    //glm::mat4 rotMat = glm::rotate(mScale, (float)glfwGetTime(), glm::vec3(0.0f, 0.0f, 1.0f));
+
 
         // return #vertices
     return 36;
