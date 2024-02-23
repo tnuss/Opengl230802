@@ -240,8 +240,18 @@ int DoAxes(GLuint vbo,GLuint ebo, Shader& shader)
 {
 
     int numVertices = 0;
+
+
     return numVertices;
     ;
+
+    //    else if (linesCMD == 6)
+    //{
+    //glDrawArrays(GL_LINES, 0, 2);
+    //glDrawArrays(GL_LINES, 2, 4);
+    //// NEED PERSPECTIVE/ORTHO to VIEW Z LINE????
+    //// glDrawArrays(GL_LINES, 4, linesInst.GetNumVertices());
+    //}
 }
 
 //-----------------------------------------
