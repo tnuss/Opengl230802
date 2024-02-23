@@ -236,10 +236,10 @@ int main(int argc, char* argv[])
     return 0;
 }
 //----------------------------------------
-int DoAxes(GLuint vbo,GLuint ebo, Shader shader)
+int DoAxes(GLuint vbo,GLuint ebo, Shader& shader)
 {
-    int numVertices = 0;
 
+    int numVertices = 0;
     return numVertices;
     ;
 }
@@ -387,11 +387,6 @@ int DoRectTexture(GLuint vbo, GLuint ebo)
     //// texture coord attribute
     //glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(6 * sizeof(float)));
     //glEnableVertexAttribArray(2);
-}
-
-int DoAxes(GLuint vvbo, GLuint eebo, Shader& sshader)
-{
-    return 0;
 }
 
 //---------------------------------------
