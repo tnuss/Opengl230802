@@ -238,9 +238,34 @@ int main(int argc, char* argv[])
 //----------------------------------------
 int DoAxes(GLuint vbo,GLuint ebo, Shader& shader)
 {
+    GLfloat vertices[] =
+    { //    COORDINATES                  /     COLORS           //
+        -1.0f,  0.0f,  0.0f,   0.8f, 0.0f, 0.00f, 1.0f, // Lower left
+         1.0f,  0.0f,  0.0f,   0.8f, 0.0f, 0.00f, 1.0f, // Lower r
+         0.0f,  1.0f,  0.0f,   0.8f, 0.0f, 0.00f, 1.0f,  // 
+         0.0f, -1.0f,  0.0f,   0.8f, 0.0f, 0.00f, 1.0f,  // 
 
-    int numVertices = 0;
+            // NEED PERSPECTIVE/ORTHO to VIEW Z LINE????
 
+         0.0f,  0.0f, -1.0f,   0.8f, 0.0f, 0.00f, 1.0f,  //
+         0.0f,  0.0f,  1.0f,   0.8f, 0.0f, 0.00f, 1.0f  // 
+    };
+
+    int numVertices = 6;
+    //doLineStrip = true;
+    //doLineLoop = false;
+
+    glBindBuffer(GL_ARRAY_BUFFER, vbo);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(float) * 7, 0);
+    glEnableVertexAttribArray(0);
+
+    //// if the vertex data changes this would go in display loop YES/NO??
+    glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, sizeof(float) * 7, (void*)(3 * sizeof(float)));
+    glEnableVertexAttribArray(1);
+        // single color #1 layout var
+       // glVertexAttrib4f(1, 0.86f, 0.9f, 0.32f, 1.0f);
 
     return numVertices;
     ;
