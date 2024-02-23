@@ -22,6 +22,12 @@ GLuint vao[numVAOs];
 GLuint vbo[numVBOs];
 GLuint ebo[numEBOs];
 
+float radVar = 0.1f;
+GLint scaleLoc = 0;
+glm::mat4 m4Scale;
+
+std::vector<Texture*> vecTextures;
+
 //--------- Funct Declarations
 
 int DoCmdLine(int, char* []);
@@ -31,18 +37,10 @@ void processInput(GLFWwindow* window);
 GLFWwindow* InitGladAndWindow(int width, int height);
 
 int DoRect(GLuint vvbo, GLuint eebo);
+int main(int argc, char* argv[]);
 int DoCube(GLuint vvbo, GLuint eebo, Shader& sshader);
 int DoRectTexture(GLuint vvbo, GLuint eebo);
-float radVar = 0.1f;
-GLint scaleLoc = 0;
-glm::mat4 m4Scale;
-
-std::vector<Texture*> vecTextures;
-
-//======= SO WHY DOES THE TEXTURE WORK NOW ==========
-//         I JUST REARRAGED CODE A BIT ...
-//            maybe since the texture was created locally in the DoRectTexture()
-//===================================================
+int DoAxes(GLuint vvbo,GLuint eebo, Shader &sshader);
 
 int main(int argc, char* argv[])
 {
@@ -105,6 +103,7 @@ int main(int argc, char* argv[])
     // *******  HERE BE WHERE VERTEX BUFFERS BE SET **************
 
     int numIndices = 0;
+    int numVertices = 0;
 
     switch (CMDLineNum)
     {
@@ -123,8 +122,16 @@ int main(int argc, char* argv[])
     case 3:
             // indices in this case is number of vertexes...
             // also rotates
-        numIndices = DoCube(vbo[0], ebo[0], shader);
-        if (numIndices < 1)
+        numVertices = DoCube(vbo[0], ebo[0], shader);
+        if (numVertices < 1)
+            return -1;
+        break;
+
+    case 4:
+        // indices in this case is number of vertexes...
+        // also rotates
+        numVertices = DoAxes(vbo[0], ebo[0], shader);
+        if (numVertices < 1)
             return -1;
         break;
 
@@ -143,23 +150,27 @@ int main(int argc, char* argv[])
     QueryPerformanceFrequency(&frequency);
         // start timer
     QueryPerformanceCounter(&t1);
+    // 'compare to' timer
+    QueryPerformanceCounter(&t2);
 
 	while (!glfwWindowShouldClose(window))
 	{
         processInput(window);
 
-        QueryPerformanceCounter(&t2);
              // in millisecs
         elapsedTime = (t2.QuadPart - t1.QuadPart) * 1000.0 / frequency.QuadPart;
+            // greater than 50 ms reset
         if (elapsedTime > 50.0)
         {
             std::cout << elapsedTime << " ms.\n";
-            radVar += .15;
+            radVar += 0.15f;
             QueryPerformanceCounter(&t1);
             if (radVar > 1000000.0)
                 radVar = 0.1f;
         }
-		// Clean the back buffer and assign the new color to it
+        QueryPerformanceCounter(&t2);
+
+        // Clean the back buffer and assign the new color to it
         //glClear(GL_COLOR_BUFFER_BIT);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         glEnable(GL_DEPTH_TEST);
@@ -201,7 +212,7 @@ int main(int argc, char* argv[])
             break;
             // cube 
         case 3:
-            glDrawArrays(GL_TRIANGLES, 0, numIndices);
+            glDrawArrays(GL_TRIANGLES, 0, numVertices);
             break;
 
         default:
@@ -224,6 +235,15 @@ int main(int argc, char* argv[])
 
     return 0;
 }
+//----------------------------------------
+int DoAxes(GLuint vbo,GLuint ebo, Shader shader)
+{
+    int numVertices = 0;
+
+    return numVertices;
+    ;
+}
+
 //-----------------------------------------
 int DoCube(GLuint vbo, GLuint ebo, Shader& shader)
 {
@@ -273,6 +293,9 @@ float vertsCube[] = {
     -0.5f,  0.5f,  0.5f,  0.0f, 0.0f,
     -0.5f,  0.5f, -0.5f,  0.0f, 1.0f
 };
+    int numVerts = sizeof(vertsCube) / (sizeof(float) * 5);
+
+    //std::cout << "Num Verts: " << sizeof(vertsCube)/ (sizeof(float) * 5) << '\n';
 
     glBindBuffer(GL_ARRAY_BUFFER, vbo);
     glBufferData(GL_ARRAY_BUFFER, sizeof(vertsCube), vertsCube, GL_STATIC_DRAW);
@@ -311,7 +334,7 @@ float vertsCube[] = {
 
 
         // return #vertices
-    return 36;
+    return numVerts;;
 }
 
 //------------------------------------------------
@@ -364,6 +387,11 @@ int DoRectTexture(GLuint vbo, GLuint ebo)
     //// texture coord attribute
     //glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(6 * sizeof(float)));
     //glEnableVertexAttribArray(2);
+}
+
+int DoAxes(GLuint vvbo, GLuint eebo, Shader& sshader)
+{
+    return 0;
 }
 
 //---------------------------------------
