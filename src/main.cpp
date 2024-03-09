@@ -13,7 +13,7 @@
 #include "texture.h"
 //#include<stb/stb_image.h>
 
-int CMDLineNum = 3;
+int CMDLineNum = 4;
 
 const int numVAOs = 1;
 const int numVBOs = 3;
@@ -25,6 +25,10 @@ GLuint ebo[numEBOs];
 float radVar = 0.1f;
 GLint scaleLoc = 0;
 glm::mat4 m4Scale;
+GLint vsMVLoc = 0;
+glm::mat4 m4MV;
+GLint vsProjectionLoc;
+glm::mat4 m4Projection;
 
 std::vector<Texture*> vecTextures;
 
@@ -35,12 +39,14 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void processInput(GLFWwindow* window);
 
 GLFWwindow* InitGladAndWindow(int width, int height);
-
-int DoRect(GLuint vvbo, GLuint eebo);
 int main(int argc, char* argv[]);
-int DoCube(GLuint vvbo, GLuint eebo, Shader& sshader);
-int DoRectTexture(GLuint vvbo, GLuint eebo);
-int DoAxes(GLuint vvbo,GLuint eebo, Shader &sshader);
+int gWinWidth, gWinHeight;
+float gWinAspect = 0.0f;
+
+int DoRect(GLuint vvbo, GLuint eebo);   // 1
+int DoCube(GLuint vvbo, GLuint eebo, Shader& sshader); // 3
+int DoRectTexture(GLuint vvbo, GLuint eebo); // 2
+int DoAxes(GLuint vvbo, Shader& sshader); // 4
 
 int main(int argc, char* argv[])
 {
@@ -68,6 +74,11 @@ int main(int argc, char* argv[])
         case 3:
             vertFileName += "Shdr-Cube";
             fragFileName += "Shdr-Cube";
+            break;
+
+        case 4:
+            vertFileName += "XYZLines";
+            fragFileName += "XYZLines";
             break;
 
         default:
@@ -130,7 +141,7 @@ int main(int argc, char* argv[])
     case 4:
         // indices in this case is number of vertexes...
         // also rotates
-        numVertices = DoAxes(vbo[0], ebo[0], shader);
+        numVertices = DoAxes(vbo[0], shader);
         if (numVertices < 1)
             return -1;
         break;
@@ -146,7 +157,20 @@ int main(int argc, char* argv[])
     LARGE_INTEGER frequency;        // ticks per second
     LARGE_INTEGER t1, t2;           // ticks
     double elapsedTime = 0;
-        // get ticks per second --- uses windows.h
+    float cutoffTime = 150.0f;
+
+    switch (CMDLineNum)
+    {
+    case 4:
+        cutoffTime = 800.0f;
+        break;
+
+    default:
+        cutoffTime = 150.0f;
+        break;
+    }
+
+    // get ticks per second --- uses windows.h
     QueryPerformanceFrequency(&frequency);
         // start timer
     QueryPerformanceCounter(&t1);
@@ -157,19 +181,21 @@ int main(int argc, char* argv[])
 	{
         processInput(window);
 
-             // in millisecs
+        // in millisecs
         elapsedTime = (t2.QuadPart - t1.QuadPart) * 1000.0 / frequency.QuadPart;
             // greater than 50 ms reset
-        if (elapsedTime > 50.0)
+        if (elapsedTime > cutoffTime)
         {
-            std::cout << elapsedTime << " ms.\n";
             radVar += 0.15f;
-            QueryPerformanceCounter(&t1);
             if (radVar > 1000000.0)
                 radVar = 0.1f;
+
+            std::cout << elapsedTime << " ms.\n";
+            std::cout << radVar << " radians\n";
+            QueryPerformanceCounter(&t1);
         }
         QueryPerformanceCounter(&t2);
-
+        
         // Clean the back buffer and assign the new color to it
         //glClear(GL_COLOR_BUFFER_BIT);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -193,12 +219,21 @@ int main(int argc, char* argv[])
        // tex.Bind();
        //glBindVertexArray(vao[0]);
 
-                 // ABSTRACT THIS OUT
-        m4Scale = glm::mat4(1.0f);
-        m4Scale = glm::rotate(m4Scale, radVar, glm::vec3(0.0f, 1.0f, 1.0f));
-        glUniformMatrix4fv(scaleLoc, 1, GL_FALSE, glm::value_ptr(m4Scale));
-                 // ABSTRACT THIS OUT
+                 // ABSTRACT THIS OUT  by switch??
 
+        m4Scale = glm::mat4(1.0f);
+        m4MV = glm::mat4(1.0f);
+        m4Scale = glm::rotate(m4Scale, radVar, glm::vec3(0.0f, 1.0f, 1.0f));
+        //m4MV = glm::translate(m4MV, glm::vec3(0.25f, 0.25f, 0.25f));
+        //m4MV = glm::rotate(m4MV, radVar, glm::vec3(1.0f, 0.5f, 0.0f));
+        m4MV = glm::rotate(m4MV, radVar, glm::vec3(1.0f, 1.0f, 1.0f));
+        glUniformMatrix4fv(scaleLoc, 1, GL_FALSE, glm::value_ptr(m4Scale));
+        glUniformMatrix4fv(vsMVLoc, 1, GL_FALSE, glm::value_ptr(m4MV));
+
+        m4Projection = glm::perspective(glm::radians(45.0f), gWinAspect, 0.1f, 100.0f);
+        //glUniformMatrix4fv(vsProjectionLoc, 1, GL_FALSE, glm::value_ptr(m4Projection));
+
+                 // ABSTRACT THIS OUT
 
         switch (CMDLineNum)
         {
@@ -213,6 +248,12 @@ int main(int argc, char* argv[])
             // cube 
         case 3:
             glDrawArrays(GL_TRIANGLES, 0, numVertices);
+            break;
+
+        case 4:
+            glDrawArrays(GL_LINES, 0, 2);
+            glDrawArrays(GL_LINES, 2, 4);
+            glDrawArrays(GL_LINES, 4, 6);
             break;
 
         default:
@@ -234,21 +275,20 @@ int main(int argc, char* argv[])
 	glfwTerminate();
 
     return 0;
-}
+ }
 //----------------------------------------
-int DoAxes(GLuint vbo,GLuint ebo, Shader& shader)
+int DoAxes(GLuint vbo, Shader& shader)
 {
     GLfloat vertices[] =
     { //    COORDINATES                  /     COLORS           //
-        -1.0f,  0.0f,  0.0f,   0.8f, 0.0f, 0.00f, 1.0f, // Lower left
-         1.0f,  0.0f,  0.0f,   0.8f, 0.0f, 0.00f, 1.0f, // Lower r
-         0.0f,  1.0f,  0.0f,   0.8f, 0.0f, 0.00f, 1.0f,  // 
-         0.0f, -1.0f,  0.0f,   0.8f, 0.0f, 0.00f, 1.0f,  // 
+        -1.0f,  0.0f,  0.0f,   0.9f, 0.3f, 0.6f, 1.0f, // Lower left
+         1.0f,  0.0f,  0.0f,   0.9f, 0.3f, 0.6f, 1.0f, // Lower r
+         0.0f,  1.0f,  0.0f,   0.3f, 0.9f, 0.6f, 1.0f,  // 
+         0.0f, -1.0f,  0.0f,   0.3f, 0.9f, 0.6f, 1.0f,  // 
 
             // NEED PERSPECTIVE/ORTHO to VIEW Z LINE????
-
-         0.0f,  0.0f, -1.0f,   0.8f, 0.0f, 0.00f, 1.0f,  //
-         0.0f,  0.0f,  1.0f,   0.8f, 0.0f, 0.00f, 1.0f  // 
+         0.0f,  0.0f, -1.0f,   0.3f, 0.6f, 0.9f, 1.0f,  //
+         0.0f,  0.0f,  1.0f,   0.3f, 0.6f, 0.9f, 1.0f  // 
     };
 
     int numVertices = 6;
@@ -258,25 +298,37 @@ int DoAxes(GLuint vbo,GLuint ebo, Shader& shader)
     glBindBuffer(GL_ARRAY_BUFFER, vbo);
     glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
 
+      // positions
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(float) * 7, 0);
     glEnableVertexAttribArray(0);
-
-    //// if the vertex data changes this would go in display loop YES/NO??
-    glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, sizeof(float) * 7, (void*)(3 * sizeof(float)));
+    // color coord attribute
+    glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, 7 * sizeof(float), (void*)(3 * sizeof(float)));
     glEnableVertexAttribArray(1);
+
         // single color #1 layout var
-       // glVertexAttrib4f(1, 0.86f, 0.9f, 0.32f, 1.0f);
+   // glVertexAttrib4f(1, 0.8f, 0.8f, 0.32f, 1.0f); // yellow
+    //glVertexAttrib4f(1, 0.8f, 0.1f, 0.32f, 1.0f);  // red
+
+    vsMVLoc = 0;
+    //shMVLoc = glGetUniformLocation(shader.GetShaderProgram(), "scale_matrix");
+    vsMVLoc = glGetUniformLocation(shader.GetShaderProgram(), "vs_mvmatrix");
+    if (vsMVLoc < 0)
+    {
+        std::cout << "Shader vs_mvmatrix uniform Lookup Error: " << vsMVLoc << '\n';
+        return -1;
+    }
+
+    vsProjectionLoc = 0;
+    //vsProjectionLoc = glGetUniformLocation(shader.GetShaderProgram(), "vs_projection");
+    //if (vsProjectionLoc < 0)
+    //{
+    //    std::cout << "Shader vs_projection uniform Lookup Error: " << vsProjectionLoc << '\n';
+    //    return -1;
+    //}
+    //m4Projection = glm::perspective(glm::radians(45.0f), gWinAspect, 0.1f, 100.0f);
+    //glUniformMatrix4fv(vsProjectionLoc, 1, GL_FALSE, glm::value_ptr(m4Projection));
 
     return numVertices;
-    ;
-
-    //    else if (linesCMD == 6)
-    //{
-    //glDrawArrays(GL_LINES, 0, 2);
-    //glDrawArrays(GL_LINES, 2, 4);
-    //// NEED PERSPECTIVE/ORTHO to VIEW Z LINE????
-    //// glDrawArrays(GL_LINES, 4, linesInst.GetNumVertices());
-    //}
 }
 
 //-----------------------------------------
@@ -285,49 +337,50 @@ int DoCube(GLuint vbo, GLuint ebo, Shader& shader)
        // THIS ROTATES AS WELL
        // ====================
 
-float vertsCube[] = {
-    -0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
-     0.5f, -0.5f, -0.5f,  1.0f, 0.0f,
-     0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-     0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-    -0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
-    -0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
+    float vertsCube[] = {
+        -0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
+         0.5f, -0.5f, -0.5f,  1.0f, 0.0f,
+         0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+         0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+        -0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
+        -0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
 
-    -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-     0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
-     0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
-     0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
-    -0.5f,  0.5f,  0.5f,  0.0f, 1.0f,
-    -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+        -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+         0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
+         0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
+         0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
+        -0.5f,  0.5f,  0.5f,  0.0f, 1.0f,
+        -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
 
-    -0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-    -0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-    -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-    -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-    -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-    -0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+        -0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+        -0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+        -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+        -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+        -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+        -0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
 
-     0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-     0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-     0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-     0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-     0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-     0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+         0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+         0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+         0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+         0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+         0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+         0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
 
-    -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-     0.5f, -0.5f, -0.5f,  1.0f, 1.0f,
-     0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
-     0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
-    -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-    -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+        -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+         0.5f, -0.5f, -0.5f,  1.0f, 1.0f,
+         0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
+         0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
+        -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+        -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
 
-    -0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
-     0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-     0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-     0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-    -0.5f,  0.5f,  0.5f,  0.0f, 0.0f,
-    -0.5f,  0.5f, -0.5f,  0.0f, 1.0f
-};
+        -0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
+         0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+         0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+         0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+        -0.5f,  0.5f,  0.5f,  0.0f, 0.0f,
+        -0.5f,  0.5f, -0.5f,  0.0f, 1.0f
+    };
+
     int numVerts = sizeof(vertsCube) / (sizeof(float) * 5);
 
     //std::cout << "Num Verts: " << sizeof(vertsCube)/ (sizeof(float) * 5) << '\n';
@@ -354,6 +407,7 @@ float vertsCube[] = {
     m4Scale = glm::scale(m4Scale, glm::vec3(0.75, 0.75, 0.75));
     scaleLoc = 0;
     scaleLoc = glGetUniformLocation(shader.GetShaderProgram(), "scale_matrix");
+    // = glGetUniformLocation(shader.GetShaderProgram(), "sc_matrix");
     if (scaleLoc < 1)
     {
         std::cout << "Shader scale_matrix uniform Lookup Error: " << scaleLoc << '\n';
@@ -488,6 +542,10 @@ GLFWwindow* InitGladAndWindow(int windx = 800, int windy = 800)
     }
 
     glfwMakeContextCurrent(window);
+        
+        // set global vars
+    glfwGetWindowSize(window, &gWinWidth, &gWinHeight);
+    gWinAspect = gWinWidth / gWinHeight;
 
     //	//Load GLAD so it configures OpenGL
     gladLoadGL();
@@ -520,6 +578,10 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height)
     // make sure the viewport matches the new window dimensions; note that width and 
     // height will be significantly larger than specified on retina displays.
     glViewport(0, 0, width, height);
+    gWinWidth = width;
+    gWinHeight = height;
+    gWinAspect = gWinWidth / gWinHeight;
+
 }
 
 //------------------------------------------

@@ -589,6 +589,8 @@
     </None>
     <None Include="resources\Shdr-Cube.frag" />
     <None Include="resources\Shdr-Cube.vert" />
+    <None Include="resources\XYZLines.frag" />
+    <None Include="resources\XYZLines.vert" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="include\glm\detail\glm.cpp" />

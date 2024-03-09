@@ -12,6 +12,14 @@ Shader::Shader(const std::string& fileName, const std::string& fileName2)
     m_shaders[1] = CreateShader(LoadShader(fileName2 + ".frag"), GL_FRAGMENT_SHADER);
 
     AttachValidate();
+
+    //std::string vsUnfmXDimScale = "vs_mvmatrix";
+    //GLuint vs_mvmatrix = 0;
+    //vs_mvmatrix = glGetUniformLocation(m_program, vsUnfmXDimScale.c_str());
+    //if (vs_mvmatrix == -1) {
+    //    printf("Error getting uniform location of 'vsXDimScale' \n");
+    //    exit(1);
+    //}
 }
 
 Shader::Shader(const std::string& fileName)
@@ -113,6 +121,7 @@ void Shader::AttachValidate()
 
     glValidateProgram(m_program);
     CheckShaderError(m_program, GL_LINK_STATUS, true, "Invalid shader program");
+
 }
 
 void Shader::Bind()

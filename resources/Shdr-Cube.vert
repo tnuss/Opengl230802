@@ -8,6 +8,8 @@ layout (location=2) in vec4 aColor;
 //uniform mat4 mv_matrix;
 //uniform mat4 proj_matrix;
 uniform mat4 scale_matrix;
+//uniform mat4 vs_mvmatrix;
+
 
 out vec4 fs_color;
 out vec2 fs_texCoords;
