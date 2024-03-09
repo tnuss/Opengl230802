@@ -23,6 +23,8 @@ GLuint vbo[numVBOs];
 GLuint ebo[numEBOs];
 
 float radVar = 0.1f;
+GLuint rotateLoc = 0;
+glm::mat4 m4Rotate;
 GLint scaleLoc = 0;
 glm::mat4 m4Scale;
 GLint vsMVLoc = 0;
@@ -47,6 +49,7 @@ int DoRect(GLuint vvbo, GLuint eebo);   // 1
 int DoCube(GLuint vvbo, GLuint eebo, Shader& sshader); // 3
 int DoRectTexture(GLuint vvbo, GLuint eebo); // 2
 int DoAxes(GLuint vvbo, Shader& sshader); // 4
+int DoCubePerspect(GLuint vvbo, Shader& sshader); // 5
 
 int main(int argc, char* argv[])
 {
@@ -79,6 +82,11 @@ int main(int argc, char* argv[])
         case 4:
             vertFileName += "XYZLines";
             fragFileName += "XYZLines";
+            break;
+
+        case 5:
+            vertFileName += "CubePerspect";
+            fragFileName += "CubePerspect";
             break;
 
         default:
@@ -142,6 +150,12 @@ int main(int argc, char* argv[])
         // indices in this case is number of vertexes...
         // also rotates
         numVertices = DoAxes(vbo[0], shader);
+        if (numVertices < 1)
+            return -1;
+        break;
+
+    case 5:
+        numVertices = DoCubePerspect(vbo[0], shader);
         if (numVertices < 1)
             return -1;
         break;
@@ -221,18 +235,20 @@ int main(int argc, char* argv[])
 
                  // ABSTRACT THIS OUT  by switch??
 
-        m4Scale = glm::mat4(1.0f);
-        m4MV = glm::mat4(1.0f);
-        m4Scale = glm::rotate(m4Scale, radVar, glm::vec3(0.0f, 1.0f, 1.0f));
-        //m4MV = glm::translate(m4MV, glm::vec3(0.25f, 0.25f, 0.25f));
-        //m4MV = glm::rotate(m4MV, radVar, glm::vec3(1.0f, 0.5f, 0.0f));
-        m4MV = glm::rotate(m4MV, radVar, glm::vec3(1.0f, 1.0f, 1.0f));
-        glUniformMatrix4fv(scaleLoc, 1, GL_FALSE, glm::value_ptr(m4Scale));
-        glUniformMatrix4fv(vsMVLoc, 1, GL_FALSE, glm::value_ptr(m4MV));
+        if (CMDLineNum == 3 || CMDLineNum == 4)
+        {
+            m4Scale = glm::mat4(1.0f);
+            m4MV = glm::mat4(1.0f);
+            m4Scale = glm::rotate(m4Scale, radVar, glm::vec3(0.0f, 1.0f, 1.0f));
+            //m4MV = glm::translate(m4MV, glm::vec3(0.25f, 0.25f, 0.25f));
+            //m4MV = glm::rotate(m4MV, radVar, glm::vec3(1.0f, 0.5f, 0.0f));
+            m4MV = glm::rotate(m4MV, radVar, glm::vec3(1.0f, 1.0f, 1.0f));
+            glUniformMatrix4fv(scaleLoc, 1, GL_FALSE, glm::value_ptr(m4Scale));
+            glUniformMatrix4fv(vsMVLoc, 1, GL_FALSE, glm::value_ptr(m4MV));
 
-        m4Projection = glm::perspective(glm::radians(45.0f), gWinAspect, 0.1f, 100.0f);
-        //glUniformMatrix4fv(vsProjectionLoc, 1, GL_FALSE, glm::value_ptr(m4Projection));
-
+            m4Projection = glm::perspective(glm::radians(45.0f), gWinAspect, 0.1f, 100.0f);
+            //glUniformMatrix4fv(vsProjectionLoc, 1, GL_FALSE, glm::value_ptr(m4Projection));
+        }
                  // ABSTRACT THIS OUT
 
         switch (CMDLineNum)
@@ -247,6 +263,7 @@ int main(int argc, char* argv[])
             break;
             // cube 
         case 3:
+        case 5:
             glDrawArrays(GL_TRIANGLES, 0, numVertices);
             break;
 
@@ -276,6 +293,97 @@ int main(int argc, char* argv[])
 
     return 0;
  }
+
+//-----------------------------------------
+int DoCubePerspect(GLuint vbo, Shader& shader)
+{
+    float vertsCube[] = {
+        -0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
+         0.5f, -0.5f, -0.5f,  1.0f, 0.0f,
+         0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+         0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+        -0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
+        -0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
+
+        -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+         0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
+         0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
+         0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
+        -0.5f,  0.5f,  0.5f,  0.0f, 1.0f,
+        -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+
+        -0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+        -0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+        -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+        -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+        -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+        -0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+
+         0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+         0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+         0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+         0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+         0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+         0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+
+        -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+         0.5f, -0.5f, -0.5f,  1.0f, 1.0f,
+         0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
+         0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
+        -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+        -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+
+        -0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
+         0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+         0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+         0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+        -0.5f,  0.5f,  0.5f,  0.0f, 0.0f,
+        -0.5f,  0.5f, -0.5f,  0.0f, 1.0f
+    };
+
+    int numVerts = sizeof(vertsCube) / (sizeof(float) * 5);
+
+    //std::cout << "Num Verts: " << sizeof(vertsCube)/ (sizeof(float) * 5) << '\n';
+
+    glBindBuffer(GL_ARRAY_BUFFER, vbo);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(vertsCube), vertsCube, GL_STATIC_DRAW);
+
+    //glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
+    //glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
+
+    // position attribute
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
+    glEnableVertexAttribArray(0);
+
+    // texture coords
+    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));
+    glEnableVertexAttribArray(1);
+
+    // single color #2 layout var
+    glVertexAttrib4f(2, 0.86f, 0.9f, 0.32f, 1.0f);
+
+    // ABSTRACT THIS OUT
+    m4Scale = glm::mat4(1.0f);
+    m4MV = glm::mat4(1.0f);
+    m4Scale = glm::scale(m4Scale, glm::vec3(0.75, 0.75, 0.75));
+
+    m4MV = m4Scale;
+           // model/view
+    GLint vsMVLoc = 0;
+    vsMVLoc = glGetUniformLocation(shader.GetShaderProgram(), "vsMVMatrix");
+    if (vsMVLoc < 1)
+    {
+        std::cout << "Shader vsMVMatrix uniform Lookup Error: " << vsMVLoc << '\n';
+        return -1;
+    }
+    // rotate
+    //radVar = 0.1f;
+    //m4Scale = glm::rotate(m4Scale, radVar, glm::vec3(0.0f, 1.0f, 1.0f));
+    //glUniformMatrix4fv(scaleLoc, 1, GL_FALSE, glm::value_ptr(m4Scale));
+
+    return numVerts;
+}
+
 //----------------------------------------
 int DoAxes(GLuint vbo, Shader& shader)
 {

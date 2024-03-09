@@ -1310,6 +1310,8 @@
     <None Include="resources\Shdr-Cube.frag" />
     <None Include="resources\XYZLines.frag" />
     <None Include="resources\XYZLines.vert" />
+    <None Include="resources\CubePerspect.frag" />
+    <None Include="resources\CubePerspect.vert" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="include\glm\detail\glm.cpp">
