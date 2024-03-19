@@ -8,6 +8,7 @@ layout (location=2) in vec4 aColor;
 //uniform mat4 mv_matrix;
 //uniform mat4 proj_matrix;
 uniform mat4 vsMVMatrix;
+uniform mat4 vsProjMatrix;
 //uniform mat4 vs_mvmatrix;
 
 out vec4 fs_color;
@@ -18,7 +19,7 @@ void main(void)
     //gl_Position = vec4(aPos.x + aOffset.x, aPos.y + aOffset.y, aPos.z,1.0);
     //gl_Position = vec4(aPos.x, aPos.y, aPos.z,1.0);
            // offset it a little
-    gl_Position = vsMVMatrix * vec4(aPos.x + 0.25, aPos.y, aPos.z, 1.0);
+    gl_Position = vsProjMatrix * vsMVMatrix * vec4(aPos.x, aPos.y, aPos.z, 1.0);
 
     fs_texCoords = aTexture;
     fs_color = aColor;

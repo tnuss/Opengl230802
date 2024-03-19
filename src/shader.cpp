@@ -68,6 +68,11 @@ Shader::Shader(const std::string& fileName)
     glValidateProgram(m_program);
     CheckShaderError(m_program, GL_LINK_STATUS, true, "Invalid shader program");
 
+    for (unsigned int i = 0; i < NUM_SHADERS; i++)
+    {
+        glDetachShader(m_program, m_shaders[i]);
+        glDeleteShader(m_shaders[i]);
+    }
     //unfrmTexUnitLoc = glGetUniformLocation(m_program, "sh_texunit");
     //if (unfrmTexUnitLoc == -1) {
     //    printf("Error getting uniform location of 'sh_texunit'\n");
@@ -121,6 +126,13 @@ void Shader::AttachValidate()
 
     glValidateProgram(m_program);
     CheckShaderError(m_program, GL_LINK_STATUS, true, "Invalid shader program");
+
+    // CAN delete shader 
+    for (unsigned int i = 0; i < NUM_SHADERS; i++)
+    {
+        glDetachShader(m_program, m_shaders[i]);
+        glDeleteShader(m_shaders[i]);
+    }
 
 }
 

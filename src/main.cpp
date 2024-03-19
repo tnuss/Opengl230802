@@ -13,7 +13,7 @@
 #include "texture.h"
 //#include<stb/stb_image.h>
 
-int CMDLineNum = 4;
+int CMDLineNum = 5;
 
 const int numVAOs = 1;
 const int numVBOs = 3;
@@ -21,6 +21,10 @@ const int numEBOs = 1;
 GLuint vao[numVAOs];
 GLuint vbo[numVBOs];
 GLuint ebo[numEBOs];
+
+GLuint vsShapeSwitchLoc = 0;
+GLuint vsShapeSwitch = 0;
+//glUniform1ui(vsShapeSwitchLoc, vsShapeSwitch);
 
 float radVar = 0.1f;
 GLuint rotateLoc = 0;
@@ -31,6 +35,7 @@ GLint vsMVLoc = 0;
 glm::mat4 m4MV;
 GLint vsProjectionLoc;
 glm::mat4 m4Projection;
+glm::mat4 translt;
 
 std::vector<Texture*> vecTextures;
 
@@ -45,11 +50,21 @@ int main(int argc, char* argv[]);
 int gWinWidth, gWinHeight;
 float gWinAspect = 0.0f;
 
-int DoRect(GLuint vvbo, GLuint eebo);   // 1
+int DoRect(GLuint vvbo, GLuint eebo, Shader& sshader);   // 1
 int DoCube(GLuint vvbo, GLuint eebo, Shader& sshader); // 3
-int DoRectTexture(GLuint vvbo, GLuint eebo); // 2
+int DoRectTexture(GLuint vvbo, GLuint eebo, Shader& sshader); // 2
 int DoAxes(GLuint vvbo, Shader& sshader); // 4
 int DoCubePerspect(GLuint vvbo, Shader& sshader); // 5
+
+//enum class VTypes
+//{
+//    POSITION_VB,
+//    COLOR_VB,
+//    TEXCOORD_VB,
+//    NORMAL_VB,
+//    INDEX_VB
+//};
+//std::vector <VTypes> PositionV = { VTypes::POSITION_VB };
 
 int main(int argc, char* argv[])
 {
@@ -127,13 +142,13 @@ int main(int argc, char* argv[])
     switch (CMDLineNum)
     {
     case 1:
-       numIndices = DoRect(vbo[0], ebo[0]);
+       numIndices = DoRect(vbo[0], ebo[0], shader);
        if (numIndices < 1)
            return -1;
        break;
 
     case 2:
-        numIndices = DoRectTexture(vbo[0], ebo[0]);
+        numIndices = DoRectTexture(vbo[0], ebo[0], shader);
         if (numIndices < 1)
             return -1;
         break;
@@ -172,14 +187,17 @@ int main(int argc, char* argv[])
     LARGE_INTEGER t1, t2;           // ticks
     double elapsedTime = 0;
     float cutoffTime = 150.0f;
+    float zOffset = -5.0;
 
     switch (CMDLineNum)
     {
     case 4:
+        radVar = 0.15f;
         cutoffTime = 800.0f;
         break;
 
     default:
+        radVar = 0.15f;
         cutoffTime = 150.0f;
         break;
     }
@@ -200,9 +218,9 @@ int main(int argc, char* argv[])
             // greater than 50 ms reset
         if (elapsedTime > cutoffTime)
         {
-            radVar += 0.15f;
-            if (radVar > 1000000.0)
-                radVar = 0.1f;
+           radVar += 0.15f;
+           if (radVar > 6.28f)
+                radVar = 0.15f;
 
             std::cout << elapsedTime << " ms.\n";
             std::cout << radVar << " radians\n";
@@ -214,11 +232,15 @@ int main(int argc, char* argv[])
         //glClear(GL_COLOR_BUFFER_BIT);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         glEnable(GL_DEPTH_TEST);
-        //glDepthFunc(GL_LEQUAL);
-        // 
-        //glFrontFace(GL_CCW);
-        //glFrontFace(GL_CW);
+        glDepthFunc(GL_LEQUAL);
 
+        if (CMDLineNum == 3 || 5)
+        {
+            // 
+            glFrontFace(GL_CCW);
+            //glFrontFace(GL_CW);
+            glCullFace(GL_BACK);
+        }
              // MAY NEED TO BIND WHICH VAO IF HAVE MULTIPLE ONES
         //glBindVertexArray(vao[0]);
              // MAY NEED TO BIND WHICH VAO IF HAVE MULTIPLE ONES
@@ -248,6 +270,19 @@ int main(int argc, char* argv[])
 
             m4Projection = glm::perspective(glm::radians(45.0f), gWinAspect, 0.1f, 100.0f);
             //glUniformMatrix4fv(vsProjectionLoc, 1, GL_FALSE, glm::value_ptr(m4Projection));
+        }
+        if (CMDLineNum == 5)
+        {
+            zOffset += -.01f;
+            //m4MV = glm::translate(m4MV, glm::vec3(0.0f, 0.0f, -0.1));
+            m4MV = glm::translate(glm::mat4(1), glm::vec3(1.0f, 1.0f, -7.0));
+
+            m4MV = glm::rotate(m4MV, radVar, glm::vec3(0.0f, 1.0f, 1.0f));
+            //std::cout << "radVar Change of Z: " << m4MV[3].z << '\n';
+            m4Projection = glm::perspective(glm::radians(45.0f), gWinAspect, 0.1f, 500.0f);
+            glUniformMatrix4fv(vsProjectionLoc, 1, GL_FALSE, glm::value_ptr(m4Projection));
+            glUniformMatrix4fv(vsMVLoc, 1, GL_FALSE, glm::value_ptr(m4MV));
+            //glUniformMatrix4fv(vsProjLoc, 1, GL_FALSE, glm::value_ptr(m4Projection));
         }
                  // ABSTRACT THIS OUT
 
@@ -281,10 +316,12 @@ int main(int argc, char* argv[])
 		// Take care of all GLFW events
 		glfwPollEvents();
 	}
-
-    glDeleteVertexArrays(1, vao);
-    glDeleteBuffers(1, vbo);
+    
+    //glDeleteTextures(1,tex???);
     glDeleteBuffers(1, ebo);
+    glDeleteBuffers(1, vbo);
+    glDeleteVertexArrays(1, vao);
+
     tex.~Texture();
 
 	glfwDestroyWindow(window);
@@ -365,17 +402,29 @@ int DoCubePerspect(GLuint vbo, Shader& shader)
     // ABSTRACT THIS OUT
     m4Scale = glm::mat4(1.0f);
     m4MV = glm::mat4(1.0f);
-    m4Scale = glm::scale(m4Scale, glm::vec3(0.75, 0.75, 0.75));
+           // move it back into the distance 
+    m4MV = glm::translate(m4MV, glm::vec3(0.0f, 0.0f, -7.0f));
+    //m4Scale = glm::scale(m4Scale, glm::vec3(0.2, 0.2, 0.2));
 
-    m4MV = m4Scale;
+    m4MV = m4Scale * m4MV;
            // model/view
-    GLint vsMVLoc = 0;
+    //GLint vsMVLoc = 0;
+    //vsMVLoc = 0;
     vsMVLoc = glGetUniformLocation(shader.GetShaderProgram(), "vsMVMatrix");
-    if (vsMVLoc < 1)
+    if (vsMVLoc < 0)
     {
         std::cout << "Shader vsMVMatrix uniform Lookup Error: " << vsMVLoc << '\n';
         return -1;
     }
+
+    vsProjectionLoc = glGetUniformLocation(shader.GetShaderProgram(), "vsProjMatrix");
+    if (vsProjectionLoc < 0)
+    {
+        std::cout << "Shader vsProjMatrix uniform Lookup Error: " << vsProjectionLoc << '\n';
+        return -1;
+    }
+    //m4Projection = glm::perspective(glm::radians(45.0f), gWinAspect, 0.01f, 1000.0f);
+    //glUniformMatrix4fv(vsProjectionLoc, 1, GL_FALSE, glm::value_ptr(m4Projection));
     // rotate
     //radVar = 0.1f;
     //m4Scale = glm::rotate(m4Scale, radVar, glm::vec3(0.0f, 1.0f, 1.0f));
@@ -417,7 +466,7 @@ int DoAxes(GLuint vbo, Shader& shader)
    // glVertexAttrib4f(1, 0.8f, 0.8f, 0.32f, 1.0f); // yellow
     //glVertexAttrib4f(1, 0.8f, 0.1f, 0.32f, 1.0f);  // red
 
-    vsMVLoc = 0;
+    vsMVLoc = -1;
     //shMVLoc = glGetUniformLocation(shader.GetShaderProgram(), "scale_matrix");
     vsMVLoc = glGetUniformLocation(shader.GetShaderProgram(), "vs_mvmatrix");
     if (vsMVLoc < 0)
@@ -516,7 +565,7 @@ int DoCube(GLuint vbo, GLuint ebo, Shader& shader)
     scaleLoc = 0;
     scaleLoc = glGetUniformLocation(shader.GetShaderProgram(), "scale_matrix");
     // = glGetUniformLocation(shader.GetShaderProgram(), "sc_matrix");
-    if (scaleLoc < 1)
+    if (scaleLoc < 0)
     {
         std::cout << "Shader scale_matrix uniform Lookup Error: " << scaleLoc << '\n';
         return -1;
@@ -535,7 +584,7 @@ int DoCube(GLuint vbo, GLuint ebo, Shader& shader)
 }
 
 //------------------------------------------------
-int DoRectTexture(GLuint vbo, GLuint ebo)
+int DoRectTexture(GLuint vbo, GLuint ebo, Shader& shader)
 {
 
     float vertices[] = {
@@ -563,11 +612,24 @@ int DoRectTexture(GLuint vbo, GLuint ebo)
     glEnableVertexAttribArray(0);
 
       // texture coord attribute
-    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(6 * sizeof(float)));
-    glEnableVertexAttribArray(1);
+    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(6 * sizeof(float)));
+    glEnableVertexAttribArray(2);
 
     // single color #2 layout var
-    glVertexAttrib4f(2, 0.86f, 0.9f, 0.32f, 1.0f);
+    glVertexAttrib4f(1, 0.86f, 0.9f, 0.32f, 1.0f);
+
+    vsShapeSwitchLoc = -1;
+    vsShapeSwitchLoc = glGetUniformLocation(shader.GetShaderProgram(), "vsShapeSwitch");
+    // = glGetUniformLocation(shader.GetShaderProgram(), "sc_matrix");
+    if (vsShapeSwitchLoc < 0)
+    {
+        std::cout << "Shader vsShapeSwitch uniform Lookup Error: " << vsShapeSwitchLoc << '\n';
+        return -1;
+    }
+
+    // cmdline value...
+    vsShapeSwitch = 2;
+    glUniform1ui(vsShapeSwitchLoc, vsShapeSwitch);
 
     //// texture coord attribute
     //glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(6 * sizeof(float)));
@@ -587,9 +649,14 @@ int DoRectTexture(GLuint vbo, GLuint ebo)
 }
 
 //---------------------------------------
-int DoRect(GLuint vbo, GLuint ebo)
+int DoRect(GLuint vbo, GLuint ebo, Shader& shader)
 {
     float vertices[] = {
+        // positions          // colors           // texture coords
+        // 0.5f,  0.5f, 0.0f,   1.0f, 0.0f, 0.0f,   1.0f, 1.0f, // top right
+        // 0.5f, -0.5f, 0.0f,   0.0f, 1.0f, 0.0f,   1.0f, 0.0f, // bottom right
+        //-0.5f, -0.5f, 0.0f,   0.0f, 0.0f, 1.0f,   0.0f, 0.0f, // bottom left
+        //-0.5f,  0.5f, 0.0f,   1.0f, 1.0f, 0.0f,   0.0f, 1.0f  // top left 
         // positions          // colors           // texture coords
          0.5f,  0.5f, 0.0f,   1.0f, 0.0f, 0.0f,   1.0f, 1.0f, // top right
          0.5f, -0.5f, 0.0f,   0.0f, 1.0f, 0.0f,   1.0f, 0.0f, // bottom right
@@ -606,13 +673,27 @@ int DoRect(GLuint vbo, GLuint ebo)
 
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
-
+    
     // position attribute
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0);
     glEnableVertexAttribArray(0);
 
     // single color #1 layout var
-    glVertexAttrib4f(1, 0.86f, 0.9f, 0.32f, 1.0f);
+    glVertexAttrib4f(1, 0.1f, 0.7f, 0.1f, 1.0f);
+    
+    vsShapeSwitchLoc = 0;
+
+    vsShapeSwitchLoc = glGetUniformLocation(shader.GetShaderProgram(), "vsShapeSwitch");
+    // = glGetUniformLocation(shader.GetShaderProgram(), "sc_matrix");
+    if (vsShapeSwitchLoc < 0)
+    {
+        std::cout << "Shader vsShapeSwitch uniform Lookup Error: " << vsShapeSwitchLoc << '\n';
+        return -1;
+    }
+
+        // cmdline value...
+    vsShapeSwitch = 1;
+    glUniform1ui(vsShapeSwitchLoc, vsShapeSwitch);
 
     return 6; // element count
     // color attribute
@@ -653,7 +734,7 @@ GLFWwindow* InitGladAndWindow(int windx = 800, int windy = 800)
         
         // set global vars
     glfwGetWindowSize(window, &gWinWidth, &gWinHeight);
-    gWinAspect = gWinWidth / gWinHeight;
+    gWinAspect = round((float)(gWinWidth / (float)gWinHeight) * 10000) / 10000;
 
     //	//Load GLAD so it configures OpenGL
     gladLoadGL();
@@ -688,7 +769,8 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height)
     glViewport(0, 0, width, height);
     gWinWidth = width;
     gWinHeight = height;
-    gWinAspect = gWinWidth / gWinHeight;
+    gWinAspect = round((float)(gWinWidth / (float)gWinHeight) * 10000) / 10000;
+
 
 }
 
@@ -709,30 +791,20 @@ int DoCmdLine(int argc, char* argv[])
         if (i == 1)
         {
             std::string cmd(argv[i]);
-            if (cmd == "1")
+            if (cmd == "1" || "2" || "3" || "4" || "5")
             {
-                std::cout << "Lines->1 Cmd " << '\n';
+
                 ArgvNum = std::stoi(cmd);
+                std::cout << " Cmd Line -> " << ArgvNum << '\n';
             }
-            else if (cmd == "2")
-            {
-                std::cout << "Lines->2 Cmd " << '\n';
-                ArgvNum = std::stoi(cmd);
-            }
-            else if (cmd == "3")
-            {
-                std::cout << "Lines->3 Cmd " << '\n';
-                ArgvNum = std::stoi(cmd);
-            }
-            else if (cmd == "4")
-            {
-                std::cout << "Lines->4 Cmd " << '\n';
-                ArgvNum = std::stoi(cmd);
-            }
+            else
+                ArgvNum = 0;
 
             CMDLineNum = ArgvNum;
         }
+
     }
+
     return 0;
 }
 
